@@ -49,6 +49,8 @@ export class HighwayScene {
   private overheadGantries: THREE.Group[] = [];
   private particleGroup: THREE.Group = new THREE.Group();
   private speedLines: THREE.LineSegments | null = null;
+  private rainGroup: THREE.Group = new THREE.Group();
+  private rainLines: THREE.LineSegments | null = null;
   private garagePlatform: THREE.Group | null = null;
 
   // Lighting
@@ -71,6 +73,7 @@ export class HighwayScene {
   private playerTargetX = 0;
   private playerSteerAngle = 0;
   private isNitroActive = false;
+  private isBraking = false;
   private nitroFuel = 100;
   private inputSteer = 0; // -1 to 1
 
@@ -138,18 +141,94 @@ export class HighwayScene {
     this.buildStreetLamps();
     this.buildOverheadGantries();
     this.buildSpeedLines();
+    this.buildRainSystem();
     this.buildParticlePool();
     this.buildTrafficPool();
 
     // 6. Spawn Player Car
     this.spawnPlayerCar(carSpec);
 
-    // 7. Window resize listener
+    // 7. Apply Time of Day and Weather settings
+    this.applyEnvironmentSettings();
+
+    // 8. Window resize listener
     window.addEventListener('resize', this.onWindowResize);
 
-    // 8. Start render loop
+    // 9. Start render loop
     this.lastTime = performance.now();
     this.animate();
+  }
+
+  public applyEnvironmentSettings() {
+    const isDay = this.settings.timeOfDay === 'day';
+    const isRain = this.settings.weather === 'rain';
+
+    if (isDay) {
+      const skyHex = isRain ? 0x6e7e94 : 0x5a9be4;
+      this.scene.background = new THREE.Color(skyHex);
+      this.scene.fog = new THREE.FogExp2(skyHex, isRain ? 0.015 : 0.007);
+
+      this.ambientLight.color.setHex(0xffffff);
+      this.ambientLight.intensity = isRain ? 1.7 : 2.5;
+
+      this.dirLight.color.setHex(0xfff5e6);
+      this.dirLight.intensity = isRain ? 1.5 : 2.8;
+      this.dirLight.position.set(30, 60, -20);
+
+      this.playerHeadlightLeft.intensity = 0;
+      this.playerHeadlightRight.intensity = 0;
+    } else {
+      const nightHex = isRain ? 0x04060b : 0x060911;
+      this.scene.background = new THREE.Color(nightHex);
+      this.scene.fog = new THREE.FogExp2(nightHex, isRain ? 0.018 : 0.012);
+
+      this.ambientLight.color.setHex(0x2a3b5c);
+      this.ambientLight.intensity = 1.4;
+
+      this.dirLight.color.setHex(0xa5c9ff);
+      this.dirLight.intensity = 1.8;
+      this.dirLight.position.set(20, 40, -30);
+
+      this.playerHeadlightLeft.intensity = 4;
+      this.playerHeadlightRight.intensity = 4;
+    }
+
+    if (this.rainGroup) {
+      this.rainGroup.visible = isRain;
+    }
+  }
+
+  private buildRainSystem() {
+    const dropCount = 300;
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(dropCount * 6);
+
+    for (let i = 0; i < dropCount; i++) {
+      const x = (Math.random() - 0.5) * 24;
+      const y = Math.random() * 22;
+      const z = (Math.random() - 0.5) * 90;
+      const len = 0.9 + Math.random() * 0.7;
+
+      positions[i * 6 + 0] = x;
+      positions[i * 6 + 1] = y;
+      positions[i * 6 + 2] = z;
+
+      positions[i * 6 + 3] = x;
+      positions[i * 6 + 4] = y - len;
+      positions[i * 6 + 5] = z;
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const material = new THREE.LineBasicMaterial({
+      color: 0x93c5fd,
+      transparent: true,
+      opacity: 0.65,
+    });
+
+    this.rainLines = new THREE.LineSegments(geometry, material);
+    this.rainGroup.add(this.rainLines);
+    this.scene.add(this.rainGroup);
+    this.rainGroup.visible = false;
   }
 
   private onWindowResize = () => {
@@ -536,6 +615,7 @@ export class HighwayScene {
     this.playerSteerAngle = 0;
     this.nitroFuel = 100;
     this.isNitroActive = false;
+    this.isBraking = false;
     this.inputSteer = 0;
 
     if (this.playerCar) {
@@ -574,9 +654,17 @@ export class HighwayScene {
 
   public updateSettings(settings: GameSettings) {
     this.settings = settings;
+    this.applyEnvironmentSettings();
   }
 
-  // --- STEERING & NITRO INPUT ---
+  // --- STEERING & NITRO & BRAKE INPUT ---
+  public setBrake(active: boolean) {
+    this.isBraking = active;
+    if (active && this.isNitroActive) {
+      this.setNitro(false);
+    }
+  }
+
   public setSteerInput(val: number) {
     // val is -1 (hard left) to +1 (hard right)
     this.inputSteer = Math.max(-1, Math.min(1, val));
@@ -704,11 +792,17 @@ export class HighwayScene {
     const accelRate = 18 + this.carSpec.acceleration * 4.5;
     const target = this.isNitroActive ? baseTopSpeed + this.carSpec.nitroBoost : baseTopSpeed;
 
-    // Auto-acceleration
-    if (this.currentSpeed < target) {
-      this.currentSpeed = Math.min(target, this.currentSpeed + accelRate * dt);
+    // Acceleration & Braking logic
+    if (this.isBraking) {
+      // Rapid deceleration down to minimum 25 km/h
+      this.currentSpeed = Math.max(25, this.currentSpeed - 90 * dt);
     } else {
-      this.currentSpeed = Math.max(target, this.currentSpeed - 35 * dt);
+      // Auto-acceleration
+      if (this.currentSpeed < target) {
+        this.currentSpeed = Math.min(target, this.currentSpeed + accelRate * dt);
+      } else {
+        this.currentSpeed = Math.max(target, this.currentSpeed - 35 * dt);
+      }
     }
 
     if (this.currentSpeed > this.maxSpeed) {
@@ -749,6 +843,14 @@ export class HighwayScene {
       this.playerCar.wheels.forEach((w) => {
         w.rotation.x += wheelAngularSpeed;
       });
+
+      // Brake lights emissive flare when braking
+      if (this.playerCar.brakeLights) {
+        this.playerCar.brakeLights.forEach((bl) => {
+          const mat = bl.material as THREE.MeshStandardMaterial;
+          mat.emissiveIntensity = this.isBraking ? 4.5 : 2.0;
+        });
+      }
 
       // Headlight dynamic follow
       this.playerHeadlightLeft.position.set(this.playerLaneX - 0.7, 0.6, -1.8);
@@ -818,6 +920,38 @@ export class HighwayScene {
         if (arr[i * 6 + 2] > 10) {
           arr[i * 6 + 2] = -90 - Math.random() * 40;
           arr[i * 6 + 5] = arr[i * 6 + 2] + 4.0;
+        }
+      }
+      posAttr.needsUpdate = true;
+    }
+
+    // 5. Update rain particles
+    if (this.rainLines && this.rainGroup.visible) {
+      const posAttr = this.rainLines.geometry.getAttribute('position') as THREE.BufferAttribute;
+      const arr = posAttr.array as Float32Array;
+      const dropSpeedY = 48 * dt;
+      const fallMoveZ = moveZ * 0.45;
+
+      for (let i = 0; i < arr.length / 6; i++) {
+        arr[i * 6 + 1] -= dropSpeedY;
+        arr[i * 6 + 4] -= dropSpeedY;
+        arr[i * 6 + 2] += fallMoveZ;
+        arr[i * 6 + 5] += fallMoveZ;
+
+        // Recycle raindrop once it falls below y=0 or passes far behind player
+        if (arr[i * 6 + 1] < 0 || arr[i * 6 + 2] > 20) {
+          const newY = 16 + Math.random() * 8;
+          const dropLen = 0.9 + Math.random() * 0.7;
+          const newX = (Math.random() - 0.5) * 24;
+          const newZ = -Math.random() * 80 + 5;
+
+          arr[i * 6 + 0] = newX;
+          arr[i * 6 + 1] = newY;
+          arr[i * 6 + 2] = newZ;
+
+          arr[i * 6 + 3] = newX;
+          arr[i * 6 + 4] = newY - dropLen;
+          arr[i * 6 + 5] = newZ;
         }
       }
       posAttr.needsUpdate = true;

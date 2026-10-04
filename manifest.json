@@ -1,7 +1,7 @@
 {
-  "name": "Apex Velocity 3D Highway Racer",
-  "short_name": "Apex Velocity",
-  "description": "High-octane 3D endless highway traffic racing game with tilt steering, near-miss bonuses, and nitro boost.",
+  "name": "ST Trafic Racer",
+  "short_name": "ST Trafic Racer",
+  "description": "High-octane 3D endless highway traffic racing game. Powered by ST Solutions.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

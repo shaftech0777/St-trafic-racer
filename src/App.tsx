@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { GameScreen, GameSettings, PlayerStats, GameSession } from './types/game';
+import { GameScreen, GameSettings, PlayerStats, GameSession, ControlScheme } from './types/game';
 import { AVAILABLE_CARS } from './data/cars';
 import { loadSettings, saveSettings, loadPlayerStats, savePlayerStats } from './utils/storage';
 import { TiltController } from './utils/tiltController';
@@ -39,6 +39,8 @@ export default function App() {
     combo: 0,
     nitroFuel: 100,
     isNitroActive: false,
+    isBraking: false,
+    coinsEarned: 0,
     isPaused: false,
     isGameOver: false,
     isNewHighscore: false,
@@ -125,16 +127,26 @@ export default function App() {
     // Stop tilt listening
     tiltControllerRef.current.stopListening();
 
+    const earnedCoins = Math.max(10, Math.floor(finalScore / 20));
+
     setPlayerStats((prev) => {
       const isNewBest = finalScore > prev.highScore;
+      const effectiveHighScore = isNewBest ? finalScore : prev.highScore;
       setIsNewHighscore(isNewBest);
+
+      // Auto-unlock cars that meet required score
+      const newlyUnlocked = AVAILABLE_CARS
+        .filter((c) => effectiveHighScore >= c.requiredScore && !prev.unlockedCarIds.includes(c.id))
+        .map((c) => c.id);
 
       return {
         ...prev,
-        highScore: isNewBest ? finalScore : prev.highScore,
+        highScore: effectiveHighScore,
         totalDistanceMeters: prev.totalDistanceMeters + finalDistance,
         totalNearMisses: prev.totalNearMisses + session.nearMisses,
         gamesPlayed: prev.gamesPlayed + 1,
+        coins: (prev.coins ?? 500) + earnedCoins,
+        unlockedCarIds: [...new Set([...(prev.unlockedCarIds ?? ['specter_gt']), ...newlyUnlocked])],
       };
     });
 
@@ -145,6 +157,8 @@ export default function App() {
       maxSpeed,
       isGameOver: true,
       isNitroActive: false,
+      isBraking: false,
+      coinsEarned: earnedCoins,
     }));
 
     setScreen('game-over');
@@ -225,6 +239,8 @@ export default function App() {
       combo: 0,
       nitroFuel: 100,
       isNitroActive: false,
+      isBraking: false,
+      coinsEarned: 0,
       isPaused: false,
       isGameOver: false,
       isNewHighscore: false,
@@ -268,15 +284,37 @@ export default function App() {
     }
     soundManager.stopEngine();
     soundManager.stopMusic();
+    setSession((prev) => ({ ...prev, isBraking: false, isNitroActive: false }));
     setScreen('menu');
   };
 
   const handleSelectCar = (carId: string) => {
-    setPlayerStats((prev) => ({ ...prev, selectedCarId: carId }));
+    const car = AVAILABLE_CARS.find((c) => c.id === carId);
+    const isUnlocked = car?.unlocked || playerStats.unlockedCarIds?.includes(carId);
+    if (isUnlocked) {
+      setPlayerStats((prev) => ({ ...prev, selectedCarId: carId }));
+    }
+  };
+
+  const handleUnlockCar = (carId: string) => {
+    const car = AVAILABLE_CARS.find((c) => c.id === carId);
+    if (!car) return;
+    const currentCoins = playerStats.coins ?? 0;
+    if (currentCoins < car.price) return;
+    if (playerStats.unlockedCarIds?.includes(carId)) return;
+
+    setPlayerStats((prev) => ({
+      ...prev,
+      coins: currentCoins - car.price,
+      unlockedCarIds: [...(prev.unlockedCarIds ?? ['specter_gt']), carId],
+      selectedCarId: carId,
+    }));
   };
 
   const handleToggleControlScheme = async () => {
-    const nextScheme = settings.controlScheme === 'tilt' ? 'touch' : 'tilt';
+    const schemes: ControlScheme[] = ['tilt', 'touch', 'wheel'];
+    const currentIndex = schemes.indexOf(settings.controlScheme);
+    const nextScheme = schemes[(currentIndex + 1) % schemes.length];
     if (nextScheme === 'tilt') {
       await tiltControllerRef.current.requestPermission();
     }
@@ -289,6 +327,13 @@ export default function App() {
       sceneRef.current.setSteerInput(val);
     }
   };
+
+  const handleBrakeTouch = useCallback((active: boolean) => {
+    if (sceneRef.current) {
+      sceneRef.current.setBrake(active);
+    }
+    setSession((prev) => ({ ...prev, isBraking: active }));
+  }, []);
 
   const handleNitroTouch = (active: boolean) => {
     if (sceneRef.current) {
@@ -339,7 +384,10 @@ export default function App() {
           cars={AVAILABLE_CARS}
           selectedCarId={playerStats.selectedCarId}
           settings={settings}
+          coins={playerStats.coins ?? 500}
+          unlockedCarIds={playerStats.unlockedCarIds ?? ['specter_gt']}
           onSelectCar={handleSelectCar}
+          onUnlockCar={handleUnlockCar}
           onBack={() => setScreen('menu')}
           onStartRace={handleStartRace}
         />
@@ -371,6 +419,7 @@ export default function App() {
           steerValue={steerValue}
           onPause={handlePause}
           onSteerTouch={handleSteerTouch}
+          onBrakeTouch={handleBrakeTouch}
           onNitroTouch={handleNitroTouch}
           onQuickCalibrateTilt={handleQuickCalibrateTilt}
         />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Volume2, VolumeX, Music, Compass, Smartphone, Vibrate, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Music, Compass, Smartphone, Vibrate, CheckCircle, Disc, Sun, Moon, CloudSun, CloudRain } from 'lucide-react';
 import { GameSettings } from '../types/game';
 import { soundManager } from '../audio/soundManager';
 import { haptics } from '../utils/haptics';
@@ -49,7 +49,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     onUpdateSettings({ ...settings, musicEnabled: val });
   };
 
-  const handleSelectScheme = async (scheme: 'tilt' | 'touch') => {
+  const handleSelectScheme = async (scheme: 'tilt' | 'touch' | 'wheel') => {
     haptics.tap(settings.hapticsEnabled);
     soundManager.playClick();
 
@@ -57,6 +57,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       await tiltController.requestPermission();
     }
     onUpdateSettings({ ...settings, controlScheme: scheme });
+  };
+
+  const handleSetTimeOfDay = (val: 'day' | 'night') => {
+    haptics.tap(settings.hapticsEnabled);
+    soundManager.playClick();
+    onUpdateSettings({ ...settings, timeOfDay: val });
+  };
+
+  const handleSetWeather = (val: 'clear' | 'rain') => {
+    haptics.tap(settings.hapticsEnabled);
+    soundManager.playClick();
+    onUpdateSettings({ ...settings, weather: val });
   };
 
   const handleSensitivityChange = (val: number) => {
@@ -112,6 +124,73 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       {/* Main Settings List */}
       <div className="w-full max-w-sm mx-auto my-auto space-y-4 py-4">
+        {/* Environment Section */}
+        <div className="bg-slate-950/70 border border-white/10 rounded-2xl p-4 space-y-3">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+            Environment & Scenery
+          </span>
+
+          {/* Time of Day */}
+          <div className="space-y-1.5">
+            <span className="text-xs text-slate-300 font-medium">Time of Day</span>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-white/5">
+              <button
+                onClick={() => handleSetTimeOfDay('day')}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  settings.timeOfDay === 'day'
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+                <span>Day</span>
+              </button>
+
+              <button
+                onClick={() => handleSetTimeOfDay('night')}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  settings.timeOfDay === 'night'
+                    ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+                <span>Night</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Weather */}
+          <div className="space-y-1.5 pt-1">
+            <span className="text-xs text-slate-300 font-medium">Weather Condition</span>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-white/5">
+              <button
+                onClick={() => handleSetWeather('clear')}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  settings.weather === 'clear'
+                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <CloudSun className="w-4 h-4" />
+                <span>Clear</span>
+              </button>
+
+              <button
+                onClick={() => handleSetWeather('rain')}
+                className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                  settings.weather === 'rain'
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <CloudRain className="w-4 h-4" />
+                <span>Rain</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Audio Section */}
         <div className="bg-slate-950/70 border border-white/10 rounded-2xl p-4 space-y-3">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -171,30 +250,42 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             Steering Controls
           </span>
 
-          {/* Segmented Control Selector */}
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-white/5">
+          {/* 3-Column Segmented Control Selector */}
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-900 rounded-xl border border-white/5">
             <button
               onClick={() => handleSelectScheme('tilt')}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
                 settings.controlScheme === 'tilt'
                   ? 'bg-slate-800 text-cyan-400 shadow-md border border-cyan-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
               <Compass className="w-4 h-4" />
-              <span>Tilt Phone</span>
+              <span className="text-[11px]">Tilt</span>
             </button>
 
             <button
               onClick={() => handleSelectScheme('touch')}
-              className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+              className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
                 settings.controlScheme === 'touch'
                   ? 'bg-slate-800 text-orange-400 shadow-md border border-orange-500/30'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
               <Smartphone className="w-4 h-4" />
-              <span>Touch Buttons</span>
+              <span className="text-[11px]">Touch</span>
+            </button>
+
+            <button
+              onClick={() => handleSelectScheme('wheel')}
+              className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
+                settings.controlScheme === 'wheel'
+                  ? 'bg-slate-800 text-amber-400 shadow-md border border-amber-500/30'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Disc className="w-4 h-4" />
+              <span className="text-[11px]">Wheel</span>
             </button>
           </div>
 
@@ -293,3 +384,4 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     </div>
   );
 };
+

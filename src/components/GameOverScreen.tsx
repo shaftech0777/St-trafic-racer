@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { RotateCcw, Home, Car, Trophy, Award, Gauge, Navigation } from 'lucide-react';
+import { RotateCcw, Home, Car, Trophy, Award, Gauge, Navigation, Coins } from 'lucide-react';
 import { GameSession, PlayerStats } from '../types/game';
 import { soundManager } from '../audio/soundManager';
 import { haptics } from '../utils/haptics';
@@ -76,8 +76,12 @@ export const GameOverScreen: React.FC<GameOverScreenProps> = ({
           <span className="font-mono-num text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-cyan-400 tracking-tight">
             {session.score.toLocaleString()}
           </span>
-          <div className="text-[11px] text-slate-500 mt-1 font-mono-num">
-            Career Best: {stats.highScore.toLocaleString()}
+          <div className="flex items-center justify-center gap-3 text-[11px] text-slate-400 mt-2 font-mono-num">
+            <span>Career Best: {stats.highScore.toLocaleString()}</span>
+            <span aria-hidden="true">·</span>
+            <span className="inline-flex items-center gap-1 text-amber-400 font-bold">
+              <Coins className="w-3.5 h-3.5" /> +{(session.coinsEarned || 0).toLocaleString()} coins
+            </span>
           </div>
         </div>
 

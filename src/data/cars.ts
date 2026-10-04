@@ -15,6 +15,7 @@ export const AVAILABLE_CARS: CarSpec[] = [
     description: 'A finely tuned twin-turbo machine engineered for agility and rapid lane shifting.',
     unlocked: true,
     requiredScore: 0,
+    price: 0,
   },
   {
     id: 'apex_phantom',
@@ -28,8 +29,9 @@ export const AVAILABLE_CARS: CarSpec[] = [
     handling: 4.2,
     nitroBoost: 60,
     description: 'Ultra-light carbon fiber chassis designed for sustained hyper-velocity on open tarmac.',
-    unlocked: true,
+    unlocked: false,
     requiredScore: 3000,
+    price: 800,
   },
   {
     id: 'vortex_xr',
@@ -43,8 +45,9 @@ export const AVAILABLE_CARS: CarSpec[] = [
     handling: 4.6,
     nitroBoost: 70,
     description: 'Equipped with dual cryogenic injectors providing explosive burst acceleration.',
-    unlocked: true,
+    unlocked: false,
     requiredScore: 8000,
+    price: 1800,
   },
   {
     id: 'titan_enforcer',
@@ -58,7 +61,8 @@ export const AVAILABLE_CARS: CarSpec[] = [
     handling: 3.8,
     nitroBoost: 50,
     description: 'Raw naturally aspirated V8 brute force with unwavering straight-line stability.',
-    unlocked: true,
+    unlocked: false,
     requiredScore: 15000,
+    price: 3200,
   },
 ];

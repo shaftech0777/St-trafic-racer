@@ -53,7 +53,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, hapticsE
           <div className="absolute -inset-4 bg-gradient-to-r from-orange-500 to-cyan-500 rounded-3xl blur-xl opacity-40 animate-pulse" />
           <img
             src="/src/assets/images/racer_app_icon_1791113447385.jpg"
-            alt="Apex Velocity Icon"
+            alt="ST Trafic Racer Icon"
             referrerPolicy="no-referrer"
             className="relative w-28 h-28 rounded-2xl shadow-2xl border border-white/15 object-cover"
           />
@@ -62,10 +62,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, hapticsE
         {/* Title */}
         <div className="space-y-1">
           <h1 className="font-racing text-4xl sm:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-200 to-cyan-400">
-            APEX VELOCITY
+            ST TRAFIC RACER
           </h1>
           <p className="text-xs sm:text-sm font-medium tracking-widest text-slate-400 uppercase">
-            3D Highway Traffic Racer
+            POWERED BY ST SOLUTIONS
           </p>
         </div>
 

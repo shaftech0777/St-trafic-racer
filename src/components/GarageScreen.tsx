@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Check, Gauge, Zap, Compass, Flame } from 'lucide-react';
+import { ArrowLeft, Check, Gauge, Zap, Compass, Flame, Lock, Coins } from 'lucide-react';
 import { CarSpec, GameSettings } from '../types/game';
 import { soundManager } from '../audio/soundManager';
 import { haptics } from '../utils/haptics';
@@ -8,7 +8,10 @@ interface GarageScreenProps {
   cars: CarSpec[];
   selectedCarId: string;
   settings: GameSettings;
+  coins: number;
+  unlockedCarIds: string[];
   onSelectCar: (carId: string) => void;
+  onUnlockCar: (carId: string) => void;
   onBack: () => void;
   onStartRace: () => void;
 }
@@ -17,11 +20,16 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
   cars,
   selectedCarId,
   settings,
+  coins,
+  unlockedCarIds,
   onSelectCar,
+  onUnlockCar,
   onBack,
   onStartRace,
 }) => {
   const currentCar = cars.find((c) => c.id === selectedCarId) || cars[0];
+  const isCurrentUnlocked = currentCar.unlocked || unlockedCarIds.includes(currentCar.id);
+  const canAfford = coins >= currentCar.price;
 
   const handleSelect = (carId: string) => {
     haptics.tap(settings.hapticsEnabled);
@@ -39,6 +47,13 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
     haptics.tap(settings.hapticsEnabled);
     soundManager.playClick();
     onStartRace();
+  };
+
+  const handleUnlock = () => {
+    if (!canAfford) return;
+    haptics.nitro(settings.hapticsEnabled);
+    soundManager.playClick();
+    onUnlockCar(currentCar.id);
   };
 
   return (
@@ -60,7 +75,13 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
           <p className="text-[11px] text-slate-400 font-medium">Select Your Machine</p>
         </div>
 
-        <div className="w-16" /> {/* Spacer */}
+        {/* Player Coin Balance */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-500/30 rounded-xl shadow-sm">
+          <Coins className="w-4 h-4 text-amber-400" />
+          <span className="font-mono-num font-bold text-xs text-amber-300">
+            {coins.toLocaleString()}
+          </span>
+        </div>
       </div>
 
       {/* Horizontal Car Selector Tabs */}
@@ -68,6 +89,8 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none justify-center">
           {cars.map((car) => {
             const isSelected = car.id === currentCar.id;
+            const isUnlocked = car.unlocked || unlockedCarIds.includes(car.id);
+
             return (
               <button
                 key={car.id}
@@ -78,10 +101,14 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
                     : 'bg-slate-950/70 border-white/10 text-slate-400 hover:text-white'
                 }`}
               >
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: car.bodyColor }}
-                />
+                {isUnlocked ? (
+                  <div
+                    className="w-3 h-3 rounded-full shrink-0"
+                    style={{ backgroundColor: car.bodyColor }}
+                  />
+                ) : (
+                  <Lock className="w-3 h-3 text-amber-400 shrink-0" />
+                )}
                 <span className="truncate max-w-[100px]">{car.name}</span>
                 {isSelected && <Check className="w-3.5 h-3.5 text-cyan-400 ml-1" />}
               </button>
@@ -90,15 +117,22 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
         </div>
       </div>
 
-      {/* Bottom Car Details & Race CTA */}
+      {/* Bottom Car Details & Action CTA */}
       <div className="w-full max-w-sm mx-auto space-y-3 pb-2">
         {/* Car Specs Card */}
         <div className="bg-slate-950/80 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl space-y-3">
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <div>
-              <h3 className="font-racing text-xl font-bold text-white leading-tight">
-                {currentCar.name}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-racing text-xl font-bold text-white leading-tight">
+                  {currentCar.name}
+                </h3>
+                {!isCurrentUnlocked && (
+                  <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-md text-[10px] font-bold">
+                    LOCKED
+                  </span>
+                )}
+              </div>
               <p className="text-[11px] text-slate-400">{currentCar.tagline}</p>
             </div>
             <div className="text-right">
@@ -185,13 +219,33 @@ export const GarageScreen: React.FC<GarageScreenProps> = ({
           </div>
         </div>
 
-        {/* Primary CTA */}
-        <button
-          onClick={handleRace}
-          className="w-full py-3.5 px-6 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-racing text-xl font-extrabold tracking-wider rounded-xl shadow-xl glow-cyan active:scale-95 transition-all flex items-center justify-center gap-2"
-        >
-          <span>SELECT & RACE</span>
-        </button>
+        {/* Primary CTA: SELECT & RACE vs UNLOCK FOR COINS */}
+        {isCurrentUnlocked ? (
+          <button
+            onClick={handleRace}
+            className="w-full py-3.5 px-6 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-racing text-xl font-extrabold tracking-wider rounded-xl shadow-xl glow-cyan active:scale-95 transition-all flex items-center justify-center gap-2"
+          >
+            <span>SELECT & RACE</span>
+          </button>
+        ) : (
+          <div className="space-y-1.5">
+            <button
+              onClick={handleUnlock}
+              disabled={!canAfford}
+              className={`w-full py-3.5 px-6 font-racing text-xl font-extrabold tracking-wider rounded-xl shadow-xl transition-all flex items-center justify-center gap-2 ${
+                canAfford
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 glow-orange active:scale-95'
+                  : 'bg-slate-900 border border-white/10 text-slate-500 opacity-60 cursor-not-allowed'
+              }`}
+            >
+              <Coins className="w-5 h-5 text-current" />
+              <span>UNLOCK FOR {currentCar.price.toLocaleString()} COINS</span>
+            </button>
+            <p className="text-center text-[11px] text-slate-400">
+              Or reach a high score of <span className="text-amber-400 font-bold font-mono-num">{currentCar.requiredScore.toLocaleString()} pts</span> to unlock for free
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

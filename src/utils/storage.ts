@@ -1,7 +1,7 @@
 import { GameSettings, PlayerStats } from '../types/game';
 
-const SETTINGS_KEY = 'apex_velocity_settings';
-const STATS_KEY = 'apex_velocity_player_stats';
+const SETTINGS_KEY = 'st_trafic_racer_settings';
+const STATS_KEY = 'st_trafic_racer_player_stats';
 
 export const DEFAULT_SETTINGS: GameSettings = {
   soundEnabled: true,
@@ -10,6 +10,8 @@ export const DEFAULT_SETTINGS: GameSettings = {
   tiltSensitivity: 1.0,
   neutralTiltGamma: 0,
   hapticsEnabled: true,
+  timeOfDay: 'night',
+  weather: 'clear',
 };
 
 export const DEFAULT_STATS: PlayerStats = {
@@ -18,6 +20,8 @@ export const DEFAULT_STATS: PlayerStats = {
   totalNearMisses: 0,
   selectedCarId: 'specter_gt',
   gamesPlayed: 0,
+  coins: 500,
+  unlockedCarIds: ['specter_gt'],
 };
 
 export function loadSettings(): GameSettings {

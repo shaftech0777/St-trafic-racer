@@ -47,10 +47,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           />
           <div>
             <h1 className="font-racing text-2xl font-bold tracking-wide text-white leading-tight">
-              APEX VELOCITY
+              ST TRAFIC RACER
             </h1>
             <p className="text-[11px] text-slate-400 font-medium tracking-wider">
-              3D HIGHWAY RACER
+              POWERED BY ST SOLUTIONS
             </p>
           </div>
         </div>
@@ -59,12 +59,17 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         <button
           onClick={() => handleAction(onToggleControlScheme)}
           className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-white/10 rounded-xl text-xs font-semibold text-slate-200 active:scale-95 transition-all shadow-sm"
-          title="Click to toggle between Tilt and Touch steering"
+          title="Click to toggle steering control scheme"
         >
           {settings.controlScheme === 'tilt' ? (
             <>
               <Compass className="w-4 h-4 text-cyan-400" />
               <span>Tilt Steer</span>
+            </>
+          ) : settings.controlScheme === 'wheel' ? (
+            <>
+              <Car className="w-4 h-4 text-amber-400" />
+              <span>Wheel Steer</span>
             </>
           ) : (
             <>
