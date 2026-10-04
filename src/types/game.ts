@@ -5,7 +5,9 @@ export type GameScreen =
   | 'settings' 
   | 'how-to-play' 
   | 'playing' 
-  | 'game-over';
+  | 'game-over'
+  | 'multiplayer-lobby'
+  | 'multiplayer-results';
 
 export type ControlScheme = 'tilt' | 'touch' | 'wheel';
 

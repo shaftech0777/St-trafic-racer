@@ -15,6 +15,9 @@ import { HowToPlayModal } from './components/HowToPlayModal';
 import { GameHUD } from './components/GameHUD';
 import { PauseMenu } from './components/PauseMenu';
 import { GameOverScreen } from './components/GameOverScreen';
+import { MultiplayerLobby } from './components/MultiplayerLobby';
+import { MultiplayerResultsModal } from './components/MultiplayerResultsModal';
+import { MultiplayerClient, NetworkRoom, NetworkPlayer } from './network/multiplayerClient';
 
 export default function App() {
   // Persistence state
@@ -25,6 +28,13 @@ export default function App() {
   const [screen, setScreen] = useState<GameScreen>('splash');
   const [isNewHighscore, setIsNewHighscore] = useState(false);
   const [steerValue, setSteerValue] = useState(0);
+
+  // Multiplayer Network state
+  const multiplayerClientRef = useRef<MultiplayerClient>(new MultiplayerClient());
+  const [multiplayerRoom, setMultiplayerRoom] = useState<NetworkRoom | null>(null);
+  const [multiplayerPlayers, setMultiplayerPlayers] = useState<NetworkPlayer[]>([]);
+  const isMultiplayerMode = useRef(false);
+  const mpSyncIntervalRef = useRef<number | null>(null);
 
   // Active car
   const activeCar = AVAILABLE_CARS.find((c) => c.id === playerStats.selectedCarId) || AVAILABLE_CARS[0];
@@ -80,6 +90,13 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [settings.uiTheme]);
+
+  // Cleanup multiplayer sync interval on unmount
+  useEffect(() => {
+    return () => {
+      if (mpSyncIntervalRef.current) window.clearInterval(mpSyncIntervalRef.current);
+    };
+  }, []);
 
   // 3. Callback handlers for Three.js HighwayScene
   const handleUpdateHUD = useCallback((stats: {
@@ -170,7 +187,13 @@ export default function App() {
       coinsEarned: earnedCoins,
     }));
 
-    setScreen('game-over');
+    if (isMultiplayerMode.current) {
+      multiplayerClientRef.current.sendCrash();
+      if (mpSyncIntervalRef.current) window.clearInterval(mpSyncIntervalRef.current);
+      setScreen('multiplayer-results');
+    } else {
+      setScreen('game-over');
+    }
   }, [settings.hapticsEnabled, session.nearMisses]);
 
   // 4. Mount Three.js Scene once on startup
@@ -265,6 +288,49 @@ export default function App() {
     soundManager.startMusic();
   };
 
+  const handleStartSoloRace = () => {
+    isMultiplayerMode.current = false;
+    handleStartRace();
+  };
+
+  const handleStartMultiplayerRace = (room: NetworkRoom, _myPlayerId: string) => {
+    isMultiplayerMode.current = true;
+    setMultiplayerRoom(room);
+    setMultiplayerPlayers(room.players);
+
+    // Setup client listener for opponent movement updates
+    multiplayerClientRef.current.setCallbacks({
+      onOpponentUpdate: (update) => {
+        if (sceneRef.current) {
+          const opponentPlayer = room.players.find((p) => p.id === update.playerId);
+          const carSpec = AVAILABLE_CARS.find((c) => c.id === opponentPlayer?.carId) || AVAILABLE_CARS[0];
+          sceneRef.current.updateOpponent(update.playerId, update, carSpec, opponentPlayer?.name);
+        }
+      },
+      onPlayerStatusChange: (data) => {
+        setMultiplayerRoom(data.room);
+        setMultiplayerPlayers(data.room.players);
+
+        if (data.allDone) {
+          if (mpSyncIntervalRef.current) window.clearInterval(mpSyncIntervalRef.current);
+          soundManager.stopEngine();
+          soundManager.stopMusic();
+          setScreen('multiplayer-results');
+        }
+      },
+    });
+
+    handleStartRace();
+
+    // Start 12 Hz physics broadcast loop
+    if (mpSyncIntervalRef.current) window.clearInterval(mpSyncIntervalRef.current);
+    mpSyncIntervalRef.current = window.setInterval(() => {
+      if (sceneRef.current && isMultiplayerMode.current) {
+        multiplayerClientRef.current.sendPlayerUpdate(sceneRef.current.getPhysicsPayload());
+      }
+    }, 80);
+  };
+
   const handlePause = () => {
     if (sceneRef.current) {
       sceneRef.current.pause();
@@ -288,6 +354,11 @@ export default function App() {
   };
 
   const handleMainMenu = () => {
+    if (mpSyncIntervalRef.current) window.clearInterval(mpSyncIntervalRef.current);
+    if (isMultiplayerMode.current) {
+      multiplayerClientRef.current.leaveRoom();
+      isMultiplayerMode.current = false;
+    }
     if (sceneRef.current) {
       sceneRef.current.stop();
     }
@@ -379,10 +450,11 @@ export default function App() {
           stats={playerStats}
           settings={settings}
           activeCar={activeCar}
-          onPlay={handleStartRace}
+          onPlay={handleStartSoloRace}
           onOpenGarage={() => setScreen('garage')}
           onOpenSettings={() => setScreen('settings')}
           onOpenHowToPlay={() => setScreen('how-to-play')}
+          onOpenMultiplayer={() => setScreen('multiplayer-lobby')}
           onToggleControlScheme={handleToggleControlScheme}
         />
       )}
@@ -409,7 +481,7 @@ export default function App() {
             }
             setScreen('menu');
           }}
-          onStartRace={handleStartRace}
+          onStartRace={handleStartSoloRace}
         />
       )}
 
@@ -431,7 +503,19 @@ export default function App() {
         />
       )}
 
-      {/* 6. Active Gameplay HUD */}
+      {/* 6. Multiplayer Lobby */}
+      {screen === 'multiplayer-lobby' && (
+        <MultiplayerLobby
+          client={multiplayerClientRef.current}
+          settings={settings}
+          availableCars={AVAILABLE_CARS}
+          defaultCarId={playerStats.selectedCarId}
+          onBack={() => setScreen('menu')}
+          onStartMultiplayerRace={handleStartMultiplayerRace}
+        />
+      )}
+
+      {/* 7. Active Gameplay HUD */}
       {screen === 'playing' && (
         <GameHUD
           session={session}
@@ -445,7 +529,7 @@ export default function App() {
         />
       )}
 
-      {/* 7. Pause Overlay */}
+      {/* 8. Pause Overlay */}
       {screen === 'playing' && session.isPaused && (
         <PauseMenu
           onResume={handleResume}
@@ -456,15 +540,26 @@ export default function App() {
         />
       )}
 
-      {/* 8. Game Over Screen */}
+      {/* 9. Solo Game Over Screen */}
       {screen === 'game-over' && (
         <GameOverScreen
           session={session}
           stats={playerStats}
           isNewHighscore={isNewHighscore}
           hapticsEnabled={settings.hapticsEnabled}
-          onPlayAgain={handleStartRace}
+          onPlayAgain={handleStartSoloRace}
           onOpenGarage={() => setScreen('garage')}
+          onMainMenu={handleMainMenu}
+        />
+      )}
+
+      {/* 10. Multiplayer Results Modal */}
+      {screen === 'multiplayer-results' && (
+        <MultiplayerResultsModal
+          players={multiplayerPlayers}
+          myPlayerId={multiplayerClientRef.current.myPlayerId || ''}
+          hapticsEnabled={settings.hapticsEnabled}
+          onBackToLobby={() => setScreen('multiplayer-lobby')}
           onMainMenu={handleMainMenu}
         />
       )}

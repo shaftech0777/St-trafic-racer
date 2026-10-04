@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Settings as SettingsIcon, Car, HelpCircle, Smartphone, Compass } from 'lucide-react';
+import { Play, Settings as SettingsIcon, Car, HelpCircle, Smartphone, Compass, Users } from 'lucide-react';
 import { PlayerStats, GameSettings, CarSpec } from '../types/game';
 import { soundManager } from '../audio/soundManager';
 import { haptics } from '../utils/haptics';
@@ -12,6 +12,7 @@ interface MainMenuProps {
   onOpenGarage: () => void;
   onOpenSettings: () => void;
   onOpenHowToPlay: () => void;
+  onOpenMultiplayer: () => void;
   onToggleControlScheme: () => void;
 }
 
@@ -23,6 +24,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onOpenGarage,
   onOpenSettings,
   onOpenHowToPlay,
+  onOpenMultiplayer,
   onToggleControlScheme,
 }) => {
   const handleAction = (cb: () => void) => {
@@ -120,15 +122,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       </div>
 
       {/* Bottom Action Menu */}
-      <div className="w-full max-w-sm mx-auto space-y-3 pb-2">
-        {/* Primary Play Button */}
-        <button
-          onClick={() => handleAction(onPlay)}
-          className="w-full py-4 px-6 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-racing text-2xl font-extrabold tracking-wider rounded-2xl shadow-xl glow-orange active:scale-95 transition-all flex items-center justify-center gap-3 group"
-        >
-          <Play className="w-6 h-6 fill-current text-slate-950 transition-transform group-hover:scale-110" />
-          <span>START RACE</span>
-        </button>
+      <div className="w-full max-w-sm mx-auto space-y-2.5 pb-2">
+        {/* Primary Play Buttons Grid */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            onClick={() => handleAction(onPlay)}
+            className="py-3.5 px-4 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-racing text-lg font-extrabold tracking-wider rounded-2xl shadow-xl glow-orange active:scale-95 transition-all flex items-center justify-center gap-2 group"
+          >
+            <Play className="w-5 h-5 fill-current text-slate-950 transition-transform group-hover:scale-110" />
+            <span>SOLO RACE</span>
+          </button>
+
+          <button
+            onClick={() => handleAction(onOpenMultiplayer)}
+            className="py-3.5 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-racing text-lg font-extrabold tracking-wider rounded-2xl shadow-xl glow-cyan active:scale-95 transition-all flex items-center justify-center gap-2 group"
+          >
+            <Users className="w-5 h-5 stroke-[2.5] text-slate-950 transition-transform group-hover:scale-110" />
+            <span>MULTIPLAYER</span>
+          </button>
+        </div>
 
         {/* Secondary Buttons Grid */}
         <div className="grid grid-cols-3 gap-2.5">

@@ -900,6 +900,7 @@ export class HighwayScene {
     this.updatePhysics(dt);
     this.updateRoadAndProps(dt);
     this.updateTraffic(dt);
+    this.updateGhostOpponents(dt);
     this.checkCollisionsAndOvertakes();
     this.updateCamera(dt);
 
@@ -1274,6 +1275,189 @@ export class HighwayScene {
 
     const lookTargetX = this.playerLaneX * 0.7;
     this.camera.lookAt(lookTargetX, 1.1, -12);
+  }
+
+  // Multiplayer Ghost Opponents
+  private ghostOpponents = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      car3D: Car3DInstance;
+      nameSprite: THREE.Sprite;
+      canvas: HTMLCanvasElement;
+      ctx: CanvasRenderingContext2D;
+      texture: THREE.CanvasTexture;
+      currentX: number;
+      targetX: number;
+      currentZ: number;
+      targetZ: number;
+      currentSpeed: number;
+      isNitroActive: boolean;
+      isBraking: boolean;
+      isCrashed: boolean;
+    }
+  >();
+
+  public getPhysicsPayload() {
+    return {
+      xPos: Number(this.playerLaneX.toFixed(2)),
+      zDistance: Math.round(this.distanceTraveled),
+      speed: Math.round(this.currentSpeed),
+      score: this.score,
+      isNitroActive: this.isNitroActive,
+      isBraking: this.isBraking,
+      isCrashed: this.isCrashed,
+    };
+  }
+
+  public updateOpponent(
+    playerId: string,
+    physics: {
+      xPos: number;
+      zDistance: number;
+      speed: number;
+      score: number;
+      isNitroActive: boolean;
+      isBraking: boolean;
+      isCrashed: boolean;
+    },
+    carSpec?: CarSpec,
+    playerName?: string
+  ) {
+    let ghost = this.ghostOpponents.get(playerId);
+
+    if (!ghost) {
+      const spec = carSpec || this.carSpec;
+      const name = playerName || 'Racer Rival';
+      const car3D = createPlayerCar(spec);
+
+      // Name Tag Sprite
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d')!;
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.minFilter = THREE.LinearFilter;
+
+      const spriteMat = new THREE.SpriteMaterial({
+        map: texture,
+        transparent: true,
+        depthTest: false,
+      });
+      const nameSprite = new THREE.Sprite(spriteMat);
+      nameSprite.scale.set(3.8, 0.95, 1);
+      nameSprite.position.set(0, 2.2, 0);
+
+      car3D.group.add(nameSprite);
+      this.scene.add(car3D.group);
+
+      ghost = {
+        id: playerId,
+        name,
+        car3D,
+        nameSprite,
+        canvas,
+        ctx,
+        texture,
+        currentX: physics.xPos || 0,
+        targetX: physics.xPos || 0,
+        currentZ: physics.zDistance || 0,
+        targetZ: physics.zDistance || 0,
+        currentSpeed: physics.speed || 0,
+        isNitroActive: !!physics.isNitroActive,
+        isBraking: !!physics.isBraking,
+        isCrashed: !!physics.isCrashed,
+      };
+
+      this.ghostOpponents.set(playerId, ghost);
+    }
+
+    ghost.targetX = physics.xPos;
+    ghost.targetZ = physics.zDistance;
+    ghost.currentSpeed = physics.speed;
+    ghost.isNitroActive = !!physics.isNitroActive;
+    ghost.isBraking = !!physics.isBraking;
+    ghost.isCrashed = !!physics.isCrashed;
+  }
+
+  private updateGhostOpponents(dt: number) {
+    this.ghostOpponents.forEach((ghost) => {
+      // Smooth interpolation (lerp) for position
+      ghost.currentX += (ghost.targetX - ghost.currentX) * Math.min(1, dt * 14);
+      ghost.currentZ += (ghost.targetZ - ghost.currentZ) * Math.min(1, dt * 14);
+
+      // Relative Z distance to local player
+      const relativeZ = -(ghost.currentZ - this.distanceTraveled);
+
+      ghost.car3D.group.position.x = ghost.currentX;
+      ghost.car3D.group.position.z = relativeZ;
+
+      if (ghost.isCrashed) {
+        ghost.car3D.group.rotation.y += 3.5 * dt;
+        ghost.car3D.group.position.y = 0.2;
+      } else {
+        ghost.car3D.group.rotation.y = 0;
+        ghost.car3D.group.position.y = 0;
+
+        // Wheel spin
+        const speedMS = (ghost.currentSpeed * 1000) / 3600;
+        const wheelRot = (speedMS / 0.38) * dt;
+        ghost.car3D.wheels.forEach((w) => (w.rotation.x += wheelRot));
+
+        // Nitro Flames
+        ghost.car3D.nitroFlames.forEach((flame) => {
+          flame.visible = ghost.isNitroActive;
+          if (ghost.isNitroActive) {
+            flame.scale.setScalar(0.8 + Math.random() * 0.4);
+          }
+        });
+
+        // Brake lights
+        ghost.car3D.brakeLights.forEach((light) => {
+          const mat = light.material as THREE.MeshStandardMaterial;
+          if (mat) {
+            mat.emissiveIntensity = ghost.isBraking ? 2.5 : 0.4;
+          }
+        });
+      }
+
+      // Update Floating Name Tag Canvas
+      const gapMeters = Math.round(ghost.currentZ - this.distanceTraveled);
+      const ctx = ghost.ctx;
+      const canvas = ghost.canvas;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = ghost.isCrashed ? 'rgba(220, 38, 38, 0.88)' : 'rgba(6, 9, 17, 0.88)';
+      ctx.strokeStyle = ghost.isCrashed ? '#f87171' : '#06b6d4';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      if (typeof ctx.roundRect === 'function') {
+        ctx.roundRect(8, 8, canvas.width - 16, canvas.height - 16, 14);
+      } else {
+        ctx.rect(8, 8, canvas.width - 16, canvas.height - 16);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const gapStr = ghost.isCrashed ? 'CRASHED' : gapMeters >= 0 ? `+${gapMeters}m` : `${gapMeters}m`;
+      ctx.fillText(`${ghost.name} [${gapStr}]`, canvas.width / 2, canvas.height / 2);
+
+      ghost.texture.needsUpdate = true;
+    });
+  }
+
+  public removeOpponent(playerId: string) {
+    const ghost = this.ghostOpponents.get(playerId);
+    if (ghost) {
+      this.scene.remove(ghost.car3D.group);
+      this.ghostOpponents.delete(playerId);
+    }
   }
 
   // --- CLEANUP ---
