@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -406,9 +407,30 @@ async function setupServer() {
       }
     });
   } else {
-    app.use(express.static(path.join(__dirname, 'dist')));
+    const distPath = path.join(__dirname, 'dist');
+    const indexPath = path.join(distPath, 'index.html');
+
+    if (fs.existsSync(distPath)) {
+      app.use(express.static(distPath));
+    }
+
     app.get('*', (_req, res) => {
-      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(200).send(`
+          <!DOCTYPE html>
+          <html>
+            <head><title>ST Trafic Racer Server</title></head>
+            <body style="font-family:sans-serif; background:#06080e; color:#fff; text-align:center; padding:50px;">
+              <h1 style="color:#06b6d4;">ST Trafic Racer Multiplayer Server</h1>
+              <p style="color:#10b981; font-weight:bold;">✔ WebSocket Server Active at /ws</p>
+              <p style="color:#f59e0b;">✔ REST APIs Active at /api/rooms & /api/health</p>
+              <p style="color:#94a3b8; font-size:12px;">Powered by ST Solutions</p>
+            </body>
+          </html>
+        `);
+      }
     });
   }
 
