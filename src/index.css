@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-rajdhani: 'Rajdhani', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+  }
+}
+
+.font-racing {
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.font-mono-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom racing neon glows & animations */
+.glow-orange {
+  box-shadow: 0 0 25px -4px rgba(249, 115, 22, 0.5);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 25px -4px rgba(6, 182, 212, 0.5);
+}
+
+.glow-text-orange {
+  text-shadow: 0 0 16px rgba(249, 115, 22, 0.6);
+}
+
+.glow-text-cyan {
+  text-shadow: 0 0 16px rgba(6, 182, 212, 0.6);
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes speed-lines {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { transform: translateY(100%); opacity: 0; }
+}

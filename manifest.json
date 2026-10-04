@@ -1,0 +1,18 @@
+{
+  "name": "Apex Velocity 3D Highway Racer",
+  "short_name": "Apex Velocity",
+  "description": "High-octane 3D endless highway traffic racing game with tilt steering, near-miss bonuses, and nitro boost.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090e",
+  "theme_color": "#0a0e17",
+  "icons": [
+    {
+      "src": "/src/assets/images/racer_app_icon_1791113447385.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

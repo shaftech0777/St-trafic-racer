@@ -1,0 +1,6 @@
+{
+  "name": "Apex Velocity 3D Highway Racer",
+  "description": "High-octane 3D endless highway traffic racing game featuring realistic physics, tilt controls, near-miss overtakes, nitro boost, and custom sports cars.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
