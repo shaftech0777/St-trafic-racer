@@ -72,6 +72,15 @@ export default function App() {
     savePlayerStats(playerStats);
   }, [playerStats]);
 
+  // Sync UI Theme (Light vs Dark) to document.documentElement
+  useEffect(() => {
+    if (settings.uiTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.uiTheme]);
+
   // 3. Callback handlers for Three.js HighwayScene
   const handleUpdateHUD = useCallback((stats: {
     speed: number;
@@ -349,7 +358,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#06080e] select-none font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="relative w-full h-full overflow-hidden bg-slate-100 dark:bg-[#06080e] select-none font-['Plus_Jakarta_Sans',sans-serif]">
       {/* 3D WebGL Canvas Viewport */}
       <div
         ref={canvasContainerRef}
@@ -387,8 +396,19 @@ export default function App() {
           coins={playerStats.coins ?? 500}
           unlockedCarIds={playerStats.unlockedCarIds ?? ['specter_gt']}
           onSelectCar={handleSelectCar}
+          onPreviewCar={(carId) => {
+            const car = AVAILABLE_CARS.find((c) => c.id === carId);
+            if (car && sceneRef.current) {
+              sceneRef.current.spawnPlayerCar(car);
+            }
+          }}
           onUnlockCar={handleUnlockCar}
-          onBack={() => setScreen('menu')}
+          onBack={() => {
+            if (sceneRef.current) {
+              sceneRef.current.spawnPlayerCar(activeCar);
+            }
+            setScreen('menu');
+          }}
           onStartRace={handleStartRace}
         />
       )}

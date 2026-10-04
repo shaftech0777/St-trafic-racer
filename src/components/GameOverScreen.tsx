@@ -48,38 +48,38 @@ export const GameOverScreen: React.FC<GameOverScreenProps> = ({
   const distanceKm = (session.distance / 1000).toFixed(2);
 
   return (
-    <div className="absolute inset-0 z-40 flex items-center justify-center p-4 bg-[#06080e]/90 backdrop-blur-lg pointer-events-auto">
-      <div className="w-full max-w-sm bg-slate-950/95 border border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 text-center">
+    <div className="absolute inset-0 z-40 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-[#06080e]/90 backdrop-blur-lg pointer-events-auto">
+      <div className="w-full max-w-sm bg-white/95 dark:bg-slate-950/95 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 text-center">
         {/* Banner: New Highscore or Collision */}
         <div>
           {isNewHighscore ? (
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 border border-amber-500/40 rounded-full text-amber-400 text-xs font-bold mb-2">
-              <Trophy className="w-4 h-4 fill-current text-amber-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500/15 border border-amber-500/30 rounded-full text-amber-600 dark:text-amber-400 text-xs font-bold mb-2">
+              <Trophy className="w-4 h-4 fill-current text-amber-500 dark:text-amber-400" />
               <span>NEW PERSONAL BEST!</span>
             </div>
           ) : (
-            <span className="text-[11px] font-bold text-red-400 uppercase tracking-widest block mb-1">
+            <span className="text-[11px] font-bold text-red-600 dark:text-red-400 uppercase tracking-widest block mb-1">
               Vehicle Totaled
             </span>
           )}
 
-          <h2 className="font-racing text-4xl font-black text-white tracking-wide">
+          <h2 className="font-racing text-4xl font-black text-slate-900 dark:text-white tracking-wide">
             GAME OVER
           </h2>
         </div>
 
         {/* Primary Score Stat Card */}
-        <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-inner">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+        <div className="bg-slate-100/90 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-inner">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
             Final Score
           </span>
-          <span className="font-mono-num text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-cyan-400 tracking-tight">
+          <span className="font-mono-num text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-400 to-cyan-500 tracking-tight">
             {session.score.toLocaleString()}
           </span>
-          <div className="flex items-center justify-center gap-3 text-[11px] text-slate-400 mt-2 font-mono-num">
+          <div className="flex items-center justify-center gap-3 text-[11px] text-slate-500 dark:text-slate-400 mt-2 font-mono-num font-semibold">
             <span>Career Best: {stats.highScore.toLocaleString()}</span>
             <span aria-hidden="true">·</span>
-            <span className="inline-flex items-center gap-1 text-amber-400 font-bold">
+            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold">
               <Coins className="w-3.5 h-3.5" /> +{(session.coinsEarned || 0).toLocaleString()} coins
             </span>
           </div>
@@ -88,28 +88,28 @@ export const GameOverScreen: React.FC<GameOverScreenProps> = ({
         {/* Breakdown Stats Grid */}
         <div className="grid grid-cols-3 gap-2 text-center">
           {/* Distance */}
-          <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5">
-            <Navigation className="w-4 h-4 mx-auto text-cyan-400 mb-1" />
-            <span className="text-[10px] text-slate-400 font-bold block uppercase">Distance</span>
-            <span className="font-mono-num text-sm font-bold text-white">
+          <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-xl p-2.5">
+            <Navigation className="w-4 h-4 mx-auto text-cyan-600 dark:text-cyan-400 mb-1" />
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase">Distance</span>
+            <span className="font-mono-num text-sm font-bold text-slate-900 dark:text-white">
               {distanceKm} <span className="text-[10px] text-slate-400 font-normal">km</span>
             </span>
           </div>
 
           {/* Near Misses */}
-          <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5">
-            <Award className="w-4 h-4 mx-auto text-amber-400 mb-1" />
-            <span className="text-[10px] text-slate-400 font-bold block uppercase">Near Miss</span>
-            <span className="font-mono-num text-sm font-bold text-amber-400">
+          <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-xl p-2.5">
+            <Award className="w-4 h-4 mx-auto text-amber-500 dark:text-amber-400 mb-1" />
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase">Near Miss</span>
+            <span className="font-mono-num text-sm font-bold text-amber-500 dark:text-amber-400">
               {session.nearMisses}
             </span>
           </div>
 
           {/* Max Speed */}
-          <div className="bg-slate-900/60 border border-white/5 rounded-xl p-2.5">
-            <Gauge className="w-4 h-4 mx-auto text-orange-400 mb-1" />
-            <span className="text-[10px] text-slate-400 font-bold block uppercase">Max Speed</span>
-            <span className="font-mono-num text-sm font-bold text-white">
+          <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-white/5 rounded-xl p-2.5">
+            <Gauge className="w-4 h-4 mx-auto text-orange-500 dark:text-orange-400 mb-1" />
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold block uppercase">Max Speed</span>
+            <span className="font-mono-num text-sm font-bold text-slate-900 dark:text-white">
               {session.maxSpeed} <span className="text-[10px] text-slate-400 font-normal">km/h</span>
             </span>
           </div>
@@ -130,17 +130,17 @@ export const GameOverScreen: React.FC<GameOverScreenProps> = ({
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleAction(onOpenGarage)}
-              className="py-3 px-3 bg-slate-900 hover:bg-slate-800 border border-white/10 rounded-xl text-xs font-bold text-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="py-3 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm"
             >
-              <Car className="w-4 h-4 text-cyan-400" />
+              <Car className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>GARAGE</span>
             </button>
 
             <button
               onClick={() => handleAction(onMainMenu)}
-              className="py-3 px-3 bg-slate-900 hover:bg-slate-800 border border-white/10 rounded-xl text-xs font-bold text-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="py-3 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm"
             >
-              <Home className="w-4 h-4 text-slate-300" />
+              <Home className="w-4 h-4 text-slate-500 dark:text-slate-300" />
               <span>MENU</span>
             </button>
           </div>

@@ -25,13 +25,13 @@ export const PauseMenu: React.FC<PauseMenuProps> = ({
   };
 
   return (
-    <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-[#06080e]/85 backdrop-blur-md pointer-events-auto">
-      <div className="w-full max-w-xs bg-slate-950/90 border border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 text-center">
+    <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-[#06080e]/85 backdrop-blur-md pointer-events-auto">
+      <div className="w-full max-w-xs bg-white/95 dark:bg-slate-950/90 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 text-center">
         <div>
-          <h2 className="font-racing text-3xl font-extrabold text-white tracking-wide">
+          <h2 className="font-racing text-3xl font-extrabold text-slate-900 dark:text-white tracking-wide">
             PAUSED
           </h2>
-          <p className="text-xs text-slate-400 font-medium">Take a breath, then rejoin the tarmac</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Take a breath, then rejoin the tarmac</p>
         </div>
 
         <div className="space-y-2.5">
@@ -47,27 +47,27 @@ export const PauseMenu: React.FC<PauseMenuProps> = ({
           {/* Restart */}
           <button
             onClick={() => handleAction(onRestart)}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 border border-white/10 text-white font-semibold text-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white font-semibold text-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
-            <RotateCcw className="w-4 h-4 text-cyan-400" />
+            <RotateCcw className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
             <span>Restart Race</span>
           </button>
 
           {/* Settings */}
           <button
             onClick={() => handleAction(onOpenSettings)}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 border border-white/10 text-white font-semibold text-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white font-semibold text-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
-            <SettingsIcon className="w-4 h-4 text-slate-300" />
+            <SettingsIcon className="w-4 h-4 text-slate-600 dark:text-slate-300" />
             <span>Settings</span>
           </button>
 
           {/* Main Menu */}
           <button
             onClick={() => handleAction(onMainMenu)}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 border border-white/10 text-white font-semibold text-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white font-semibold text-sm rounded-xl active:scale-95 transition-all flex items-center justify-center gap-2 shadow-sm"
           >
-            <Home className="w-4 h-4 text-slate-400" />
+            <Home className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Main Menu</span>
           </button>
         </div>

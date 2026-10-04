@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Pause, Flame, ChevronLeft, ChevronRight, Compass, Disc, CircleDot, Octagon } from 'lucide-react';
+import { Pause, Flame, ChevronLeft, ChevronRight, Compass, Disc, Octagon } from 'lucide-react';
 import { GameSession, GameSettings } from '../types/game';
 import { soundManager } from '../audio/soundManager';
 import { haptics } from '../utils/haptics';
@@ -125,7 +125,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
     const dx = clientX - centerX;
     const dy = clientY - centerY;
 
-    // Calculate angle where straight up is 0
     let angleRad = Math.atan2(dx, -dy);
     let deg = angleRad * (180 / Math.PI);
 
@@ -173,22 +172,22 @@ export const GameHUD: React.FC<GameHUDProps> = ({
       <div className="w-full flex flex-col items-center">
         <div className="w-full flex items-center justify-between">
           {/* Distance Traveled */}
-          <div className="bg-slate-950/70 backdrop-blur-md border border-white/10 px-3.5 py-1.5 rounded-xl shadow-md pointer-events-auto">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+          <div className="bg-white/85 dark:bg-slate-950/70 backdrop-blur-md border border-slate-200 dark:border-white/10 px-3.5 py-1.5 rounded-xl shadow-md pointer-events-auto">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">
               Distance
             </span>
-            <span className="font-mono-num text-base sm:text-lg font-bold text-cyan-400">
+            <span className="font-mono-num text-base sm:text-lg font-bold text-cyan-600 dark:text-cyan-400">
               {(session.distance / 1000).toFixed(2)}{' '}
-              <span className="text-xs font-normal text-slate-400">km</span>
+              <span className="text-xs font-normal text-slate-500 dark:text-slate-400">km</span>
             </span>
           </div>
 
           {/* Center: Live Score */}
-          <div className="text-center bg-slate-950/70 backdrop-blur-md border border-white/10 px-4 py-1.5 rounded-xl shadow-md pointer-events-auto">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+          <div className="text-center bg-white/85 dark:bg-slate-950/70 backdrop-blur-md border border-slate-200 dark:border-white/10 px-4 py-1.5 rounded-xl shadow-md pointer-events-auto">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider block">
               Score
             </span>
-            <span className="font-mono-num text-lg sm:text-2xl font-black text-amber-400 tracking-tight">
+            <span className="font-mono-num text-lg sm:text-2xl font-black text-amber-500 dark:text-amber-400 tracking-tight">
               {session.score.toLocaleString()}
             </span>
           </div>
@@ -196,7 +195,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {/* Pause Button */}
           <button
             onClick={handlePause}
-            className="p-2.5 bg-slate-950/70 hover:bg-slate-800 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 active:scale-90 transition-all pointer-events-auto shadow-md"
+            className="p-2.5 bg-white/85 dark:bg-slate-950/70 hover:bg-slate-100 dark:hover:bg-slate-800 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-200 active:scale-90 transition-all pointer-events-auto shadow-md"
             title="Pause Game"
           >
             <Pause className="w-5 h-5" />
@@ -225,13 +224,13 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
       {/* Tilt Status Indicator (if in tilt mode) */}
       {settings.controlScheme === 'tilt' && (
-        <div className="mx-auto flex items-center gap-2 bg-slate-950/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 text-xs pointer-events-auto">
-          <Compass className="w-3.5 h-3.5 text-cyan-400" />
-          <span className="text-[10px] text-slate-400 uppercase font-semibold">Tilt Steer</span>
+        <div className="mx-auto flex items-center gap-2 bg-white/85 dark:bg-slate-950/60 backdrop-blur-md px-3 py-1 rounded-full border border-slate-200 dark:border-white/10 text-xs pointer-events-auto shadow-sm">
+          <Compass className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+          <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-semibold">Tilt Steer</span>
           {/* Subtle balance pip */}
-          <div className="w-16 h-2 bg-slate-800 rounded-full relative overflow-hidden">
+          <div className="w-16 h-2 bg-slate-200 dark:bg-slate-800 rounded-full relative overflow-hidden">
             <div
-              className="w-2.5 h-2 bg-cyan-400 rounded-full absolute top-0 transition-transform duration-75"
+              className="w-2.5 h-2 bg-cyan-500 dark:bg-cyan-400 rounded-full absolute top-0 transition-transform duration-75"
               style={{
                 left: '50%',
                 transform: `translateX(-50%) translateX(${steerValue * 28}px)`,
@@ -240,7 +239,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </div>
           <button
             onClick={onQuickCalibrateTilt}
-            className="text-[10px] text-cyan-300 font-bold hover:underline pl-1"
+            className="text-[10px] text-cyan-600 dark:text-cyan-300 font-bold hover:underline pl-1"
             title="Set current angle as center"
           >
             Calibrate
@@ -251,14 +250,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({
       {/* Bottom Controls Bar */}
       <div className="w-full flex items-end justify-between gap-2 sm:gap-3 pointer-events-auto pt-2">
         {/* Left: Speedometer Gauge */}
-        <div className="flex items-center gap-2 bg-slate-950/75 backdrop-blur-md border border-white/10 p-2 sm:p-2.5 rounded-2xl shadow-xl shrink-0">
+        <div className="flex items-center gap-2 bg-white/85 dark:bg-slate-950/75 backdrop-blur-md border border-slate-200 dark:border-white/10 p-2 sm:p-2.5 rounded-2xl shadow-xl shrink-0">
           <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center">
             <svg className="w-12 h-12 sm:w-14 sm:h-14 transform -rotate-90" viewBox="0 0 72 72">
               <circle
                 cx="36"
                 cy="36"
                 r="28"
-                className="stroke-slate-800"
+                className="stroke-slate-200 dark:stroke-slate-800"
                 strokeWidth="5"
                 fill="none"
               />
@@ -268,7 +267,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 r="28"
                 className={`transition-all duration-75 ${
                   session.isNitroActive
-                    ? 'stroke-cyan-400'
+                    ? 'stroke-cyan-500'
                     : session.isBraking
                     ? 'stroke-red-500'
                     : 'stroke-orange-500'
@@ -281,10 +280,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="font-racing text-base sm:text-lg font-black leading-none text-white font-mono-num">
+              <span className="font-racing text-base sm:text-lg font-black leading-none text-slate-900 dark:text-white font-mono-num">
                 {session.speed}
               </span>
-              <span className="text-[8px] sm:text-[9px] text-slate-400 font-bold uppercase -mt-0.5">
+              <span className="text-[8px] sm:text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase -mt-0.5">
                 KM/H
               </span>
             </div>
@@ -301,8 +300,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               onPointerCancel={() => handleTouchLeft(false)}
               className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center border transition-all active:scale-90 shadow-xl ${
                 leftPressed
-                  ? 'bg-orange-500/80 border-orange-400 text-white'
-                  : 'bg-slate-950/80 border-white/15 text-slate-300 hover:text-white'
+                  ? 'bg-orange-500/90 border-orange-400 text-white'
+                  : 'bg-white/85 dark:bg-slate-950/80 border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
               title="Steer Left"
             >
@@ -316,8 +315,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               onPointerCancel={() => handleTouchRight(false)}
               className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center border transition-all active:scale-90 shadow-xl ${
                 rightPressed
-                  ? 'bg-orange-500/80 border-orange-400 text-white'
-                  : 'bg-slate-950/80 border-white/15 text-slate-300 hover:text-white'
+                  ? 'bg-orange-500/90 border-orange-400 text-white'
+                  : 'bg-white/85 dark:bg-slate-950/80 border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
               title="Steer Right"
             >
@@ -335,7 +334,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               onPointerMove={handleWheelPointerMove}
               onPointerUp={handleWheelPointerUp}
               onPointerCancel={handleWheelPointerUp}
-              className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing active:scale-105 transition-transform"
+              className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/90 dark:bg-slate-950/90 border-2 border-cyan-500/40 shadow-2xl flex items-center justify-center cursor-grab active:cursor-grabbing active:scale-105 transition-transform"
               style={{
                 touchAction: 'none',
               }}
@@ -348,18 +347,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 }}
               >
                 {/* Wheel Outer Rim */}
-                <div className="absolute inset-1.5 rounded-full border-4 border-slate-700 shadow-inner" />
+                <div className="absolute inset-1.5 rounded-full border-4 border-slate-400 dark:border-slate-700 shadow-inner" />
                 {/* Horizontal Spoke */}
-                <div className="absolute w-full h-2 bg-slate-700 rounded-sm" />
+                <div className="absolute w-full h-2 bg-slate-400 dark:bg-slate-700 rounded-sm" />
                 {/* Vertical bottom spoke */}
-                <div className="absolute w-2 h-1/2 bottom-1 bg-slate-700 rounded-sm" />
+                <div className="absolute w-2 h-1/2 bottom-1 bg-slate-400 dark:bg-slate-700 rounded-sm" />
                 {/* Center Hub */}
                 <div className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-cyan-600 to-blue-500 border border-white/30 flex items-center justify-center shadow-lg">
                   <Disc className="w-4 h-4 text-white animate-spin-slow" />
                 </div>
               </div>
             </div>
-            <span className="text-[9px] text-cyan-400 font-bold uppercase mt-1 tracking-wider">
+            <span className="text-[9px] text-cyan-600 dark:text-cyan-400 font-bold uppercase mt-1 tracking-wider">
               Steer Wheel
             </span>
           </div>
@@ -376,7 +375,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex flex-col items-center justify-center border-2 transition-all active:scale-90 shadow-xl ${
               brakePressed || session.isBraking
                 ? 'bg-red-600/90 border-red-400 text-white shadow-red-950/50'
-                : 'bg-slate-950/85 border-red-500/40 text-red-400 hover:border-red-400'
+                : 'bg-white/85 dark:bg-slate-950/85 border-red-500/40 text-red-600 dark:text-red-400 hover:border-red-400'
             }`}
             title="Brake / Slow Down"
           >
@@ -398,8 +397,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 session.isNitroActive
                   ? 'bg-gradient-to-tr from-cyan-600 to-blue-500 border-cyan-300 glow-cyan text-white animate-pulse'
                   : session.nitroFuel >= 15
-                  ? 'bg-slate-950/85 border-cyan-500/40 text-cyan-400 hover:border-cyan-400'
-                  : 'bg-slate-950/60 border-slate-800 text-slate-600 opacity-60'
+                  ? 'bg-white/85 dark:bg-slate-950/85 border-cyan-500/40 text-cyan-600 dark:text-cyan-400 hover:border-cyan-400'
+                  : 'bg-white/60 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 opacity-60'
               }`}
               title="Nitro Boost"
             >
@@ -409,10 +408,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               </span>
 
               {/* Bottom Fuel Bar */}
-              <div className="absolute -bottom-1.5 w-12 sm:w-14 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+              <div className="absolute -bottom-1.5 w-12 sm:w-14 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden border border-slate-300 dark:border-slate-700">
                 <div
                   className={`h-full transition-all duration-75 ${
-                    session.isNitroActive ? 'bg-cyan-300' : 'bg-cyan-500'
+                    session.isNitroActive ? 'bg-cyan-400' : 'bg-cyan-500'
                   }`}
                   style={{ width: `${session.nitroFuel}%` }}
                 />

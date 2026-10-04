@@ -34,7 +34,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const formattedDistance = (stats.totalDistanceMeters / 1000).toFixed(1);
 
   return (
-    <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 bg-gradient-to-b from-[#06080e]/85 via-transparent to-[#06080e]/95 pointer-events-auto">
+    <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 bg-gradient-to-b from-slate-100/90 via-transparent to-slate-100/95 dark:from-[#06080e]/85 dark:via-transparent dark:to-[#06080e]/95 pointer-events-auto">
       {/* Top Header Stats & Control Switcher */}
       <div className="w-full flex items-center justify-between">
         {/* Brand Lockup */}
@@ -43,13 +43,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             src="/src/assets/images/racer_app_icon_1791113447385.jpg"
             alt="Logo"
             referrerPolicy="no-referrer"
-            className="w-10 h-10 rounded-xl border border-white/10 shadow-md object-cover"
+            className="w-10 h-10 rounded-xl border border-slate-200 dark:border-white/10 shadow-md object-cover"
           />
           <div>
-            <h1 className="font-racing text-2xl font-bold tracking-wide text-white leading-tight">
+            <h1 className="font-racing text-2xl font-bold tracking-wide text-slate-900 dark:text-white leading-tight">
               ST TRAFIC RACER
             </h1>
-            <p className="text-[11px] text-slate-400 font-medium tracking-wider">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium tracking-wider">
               POWERED BY ST SOLUTIONS
             </p>
           </div>
@@ -58,22 +58,22 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         {/* Quick Controls Scheme Badge / Toggle Button */}
         <button
           onClick={() => handleAction(onToggleControlScheme)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-white/10 rounded-xl text-xs font-semibold text-slate-200 active:scale-95 transition-all shadow-sm"
+          className="flex items-center gap-2 px-3 py-1.5 bg-white/90 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 active:scale-95 transition-all shadow-sm"
           title="Click to toggle steering control scheme"
         >
           {settings.controlScheme === 'tilt' ? (
             <>
-              <Compass className="w-4 h-4 text-cyan-400" />
+              <Compass className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
               <span>Tilt Steer</span>
             </>
           ) : settings.controlScheme === 'wheel' ? (
             <>
-              <Car className="w-4 h-4 text-amber-400" />
+              <Car className="w-4 h-4 text-amber-500 dark:text-amber-400" />
               <span>Wheel Steer</span>
             </>
           ) : (
             <>
-              <Smartphone className="w-4 h-4 text-orange-400" />
+              <Smartphone className="w-4 h-4 text-orange-500 dark:text-orange-400" />
               <span>Touch Buttons</span>
             </>
           )}
@@ -83,23 +83,23 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       {/* Center High Score & Active Car Card */}
       <div className="flex flex-col items-center justify-center my-auto space-y-4">
         {/* Career Best Stats */}
-        <div className="w-full max-w-xs bg-slate-950/70 backdrop-blur-md border border-white/10 rounded-2xl p-4 shadow-xl flex items-center justify-around">
+        <div className="w-full max-w-xs bg-white/90 dark:bg-slate-950/70 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-2xl p-4 shadow-xl flex items-center justify-around">
           <div className="text-center">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
               Best Score
             </span>
-            <span className="font-mono-num text-2xl font-bold text-amber-400 tracking-tight">
+            <span className="font-mono-num text-2xl font-bold text-amber-500 dark:text-amber-400 tracking-tight">
               {stats.highScore.toLocaleString()}
             </span>
           </div>
 
-          <div className="h-8 w-px bg-white/10" />
+          <div className="h-8 w-px bg-slate-200 dark:bg-white/10" />
 
           <div className="text-center">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
               Total Distance
             </span>
-            <span className="font-mono-num text-2xl font-bold text-cyan-400 tracking-tight">
+            <span className="font-mono-num text-2xl font-bold text-cyan-600 dark:text-cyan-400 tracking-tight">
               {formattedDistance} <span className="text-xs font-normal text-slate-400">km</span>
             </span>
           </div>
@@ -108,13 +108,13 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         {/* Active Car Pill */}
         <button
           onClick={() => handleAction(onOpenGarage)}
-          className="flex items-center gap-3 px-4 py-2 bg-slate-900/80 hover:bg-slate-800 backdrop-blur-md border border-white/10 rounded-xl text-xs text-slate-300 active:scale-98 transition-all"
+          className="flex items-center gap-3 px-4 py-2 bg-white/90 hover:bg-slate-100 dark:bg-slate-900/80 dark:hover:bg-slate-800 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-700 dark:text-slate-300 active:scale-98 transition-all shadow-sm"
         >
           <div
             className="w-3.5 h-3.5 rounded-full shadow-sm"
             style={{ backgroundColor: activeCar.bodyColor }}
           />
-          <span className="font-semibold text-white">{activeCar.name}</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{activeCar.name}</span>
           <span className="text-slate-500 font-mono-num">({activeCar.topSpeed} km/h)</span>
         </button>
       </div>
@@ -134,25 +134,25 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         <div className="grid grid-cols-3 gap-2.5">
           <button
             onClick={() => handleAction(onOpenGarage)}
-            className="flex flex-col items-center justify-center py-3 px-2 bg-slate-900/85 hover:bg-slate-800/90 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 active:scale-95 transition-all shadow-md"
+            className="flex flex-col items-center justify-center py-3 px-2 bg-white/90 hover:bg-slate-100 dark:bg-slate-900/85 dark:hover:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-200 active:scale-95 transition-all shadow-md"
           >
-            <Car className="w-5 h-5 mb-1 text-cyan-400" />
+            <Car className="w-5 h-5 mb-1 text-cyan-600 dark:text-cyan-400" />
             <span className="text-[11px] font-bold tracking-wide uppercase">Garage</span>
           </button>
 
           <button
             onClick={() => handleAction(onOpenSettings)}
-            className="flex flex-col items-center justify-center py-3 px-2 bg-slate-900/85 hover:bg-slate-800/90 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 active:scale-95 transition-all shadow-md"
+            className="flex flex-col items-center justify-center py-3 px-2 bg-white/90 hover:bg-slate-100 dark:bg-slate-900/85 dark:hover:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-200 active:scale-95 transition-all shadow-md"
           >
-            <SettingsIcon className="w-5 h-5 mb-1 text-slate-300" />
+            <SettingsIcon className="w-5 h-5 mb-1 text-slate-600 dark:text-slate-300" />
             <span className="text-[11px] font-bold tracking-wide uppercase">Settings</span>
           </button>
 
           <button
             onClick={() => handleAction(onOpenHowToPlay)}
-            className="flex flex-col items-center justify-center py-3 px-2 bg-slate-900/85 hover:bg-slate-800/90 backdrop-blur-md border border-white/10 rounded-xl text-slate-200 active:scale-95 transition-all shadow-md"
+            className="flex flex-col items-center justify-center py-3 px-2 bg-white/90 hover:bg-slate-100 dark:bg-slate-900/85 dark:hover:bg-slate-800/90 backdrop-blur-md border border-slate-200 dark:border-white/10 rounded-xl text-slate-800 dark:text-slate-200 active:scale-95 transition-all shadow-md"
           >
-            <HelpCircle className="w-5 h-5 mb-1 text-amber-400" />
+            <HelpCircle className="w-5 h-5 mb-1 text-amber-500 dark:text-amber-400" />
             <span className="text-[11px] font-bold tracking-wide uppercase">Guide</span>
           </button>
         </div>

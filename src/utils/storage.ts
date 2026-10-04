@@ -10,8 +10,9 @@ export const DEFAULT_SETTINGS: GameSettings = {
   tiltSensitivity: 1.0,
   neutralTiltGamma: 0,
   hapticsEnabled: true,
-  timeOfDay: 'night',
+  timeOfDay: 'day',
   weather: 'clear',
+  uiTheme: 'light',
 };
 
 export const DEFAULT_STATS: PlayerStats = {

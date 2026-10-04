@@ -51,6 +51,8 @@ export class HighwayScene {
   private speedLines: THREE.LineSegments | null = null;
   private rainGroup: THREE.Group = new THREE.Group();
   private rainLines: THREE.LineSegments | null = null;
+  private scenerySegments: THREE.Group[] = [];
+  private billboardTexture: THREE.CanvasTexture | null = null;
   private garagePlatform: THREE.Group | null = null;
 
   // Lighting
@@ -138,6 +140,7 @@ export class HighwayScene {
 
     // 5. Build Environment
     this.buildRoadSegments();
+    this.buildDistantScenery();
     this.buildStreetLamps();
     this.buildOverheadGantries();
     this.buildSpeedLines();
@@ -243,37 +246,68 @@ export class HighwayScene {
   // --- BUILD 3D HIGHWAY & PROPS ---
   private buildRoadSegments() {
     const roadMat = new THREE.MeshStandardMaterial({
-      color: 0x141824,
-      roughness: 0.85,
-      metalness: 0.15,
+      color: 0x131722,
+      roughness: 0.88,
+      metalness: 0.12,
     });
 
     const shoulderMat = new THREE.MeshStandardMaterial({
-      color: 0x0c0f18,
+      color: 0x0a0d14,
       roughness: 0.95,
       metalness: 0.05,
     });
 
     const guardrailMat = new THREE.MeshStandardMaterial({
       color: 0x64748b,
-      metalness: 0.85,
-      roughness: 0.35,
+      metalness: 0.88,
+      roughness: 0.3,
     });
 
-    const whiteLineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const yellowLineMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    // Faintly glowing lane paint for premium night/day look
+    const whiteLineMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      emissive: 0x475569,
+      emissiveIntensity: 0.45,
+      roughness: 0.4,
+    });
+    const yellowLineMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      emissive: 0xd97706,
+      emissiveIntensity: 0.45,
+      roughness: 0.4,
+    });
+
+    // Subtle lane strip materials for visual depth across the 4 lanes
+    const laneStripMats = [
+      new THREE.MeshStandardMaterial({ color: 0x151926, roughness: 0.85, metalness: 0.12 }),
+      new THREE.MeshStandardMaterial({ color: 0x121622, roughness: 0.88, metalness: 0.14 }),
+      new THREE.MeshStandardMaterial({ color: 0x161a28, roughness: 0.86, metalness: 0.12 }),
+      new THREE.MeshStandardMaterial({ color: 0x131724, roughness: 0.89, metalness: 0.13 }),
+    ];
 
     for (let i = 0; i < this.ROAD_SEGMENT_COUNT; i++) {
       const segment = new THREE.Group();
       const zPos = -i * this.ROAD_LENGTH;
 
-      // Main asphalt
+      // Main asphalt base
       const asphalt = new THREE.Mesh(
         new THREE.PlaneGeometry(this.ROAD_WIDTH, this.ROAD_LENGTH),
         roadMat
       );
       asphalt.rotation.x = -Math.PI / 2;
       segment.add(asphalt);
+
+      // Subtle lane strips
+      const laneWidth = this.ROAD_WIDTH / 4;
+      for (let l = 0; l < 4; l++) {
+        const laneStrip = new THREE.Mesh(
+          new THREE.PlaneGeometry(laneWidth - 0.05, this.ROAD_LENGTH),
+          laneStripMats[l]
+        );
+        laneStrip.rotation.x = -Math.PI / 2;
+        laneStrip.position.set(-this.ROAD_WIDTH / 2 + (l + 0.5) * laneWidth, 0.005, 0);
+        segment.add(laneStrip);
+      }
 
       // Side shoulders
       const leftShoulder = new THREE.Mesh(
@@ -303,7 +337,7 @@ export class HighwayScene {
       segment.add(railRight);
 
       // Yellow outer border lines
-      const edgeLineGeo = new THREE.PlaneGeometry(0.2, this.ROAD_LENGTH);
+      const edgeLineGeo = new THREE.PlaneGeometry(0.22, this.ROAD_LENGTH);
       const leftYellow = new THREE.Mesh(edgeLineGeo, yellowLineMat);
       leftYellow.rotation.x = -Math.PI / 2;
       leftYellow.position.set(-this.ROAD_WIDTH / 2 + 0.15, 0.01, 0);
@@ -324,7 +358,7 @@ export class HighwayScene {
         for (let d = 0; d < dashCount; d++) {
           const dash = new THREE.Mesh(dashGeo, whiteLineMat);
           dash.rotation.x = -Math.PI / 2;
-          dash.position.set(x, 0.01, -this.ROAD_LENGTH / 2 + d * dashSpacing + 2.0);
+          dash.position.set(x, 0.012, -this.ROAD_LENGTH / 2 + d * dashSpacing + 2.0);
           segment.add(dash);
         }
       });
@@ -332,6 +366,113 @@ export class HighwayScene {
       segment.position.z = zPos;
       this.scene.add(segment);
       this.roadSegments.push(segment);
+    }
+  }
+
+  private createBillboardTexture(): THREE.CanvasTexture {
+    if (this.billboardTexture) return this.billboardTexture;
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 160;
+    const ctx = canvas.getContext('2d')!;
+
+    // Background
+    ctx.fillStyle = '#070b14';
+    ctx.fillRect(0, 0, 512, 160);
+
+    // Glowing Cyan Border
+    ctx.strokeStyle = '#06b6d4';
+    ctx.lineWidth = 10;
+    ctx.strokeRect(6, 6, 500, 148);
+
+    // Brand Name
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 52px Rajdhani, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('ST SOLUTIONS', 256, 65);
+
+    // Subtitle
+    ctx.fillStyle = '#38bdf8';
+    ctx.font = 'bold 24px Rajdhani, sans-serif';
+    ctx.fillText('POWER & PRECISION', 256, 118);
+
+    this.billboardTexture = new THREE.CanvasTexture(canvas);
+    return this.billboardTexture;
+  }
+
+  private buildDistantScenery() {
+    const buildingMatA = new THREE.MeshStandardMaterial({
+      color: 0x0f172a,
+      roughness: 0.9,
+      metalness: 0.1,
+    });
+    const buildingMatB = new THREE.MeshStandardMaterial({
+      color: 0x1e293b,
+      roughness: 0.85,
+      metalness: 0.15,
+    });
+    const hillMat = new THREE.MeshStandardMaterial({
+      color: 0x0b1322,
+      roughness: 0.95,
+      metalness: 0.05,
+    });
+
+    const billboardMat = new THREE.MeshStandardMaterial({
+      map: this.createBillboardTexture(),
+      emissive: 0x083344,
+      emissiveIntensity: 0.6,
+      roughness: 0.3,
+    });
+
+    for (let i = 0; i < this.ROAD_SEGMENT_COUNT; i++) {
+      const segGroup = new THREE.Group();
+      const zOffset = -i * this.ROAD_LENGTH;
+
+      // Place buildings & hills along both sides (left: x = -30 to -55, right: x = +30 to +55)
+      [-1, 1].forEach((side) => {
+        const sideX = side * 36;
+
+        // 4 Low poly buildings per side per segment
+        for (let b = 0; b < 4; b++) {
+          const bWidth = 10 + Math.random() * 8;
+          const bDepth = 12 + Math.random() * 10;
+          const bHeight = 18 + Math.random() * 26;
+          const bGeo = new THREE.BoxGeometry(bWidth, bHeight, bDepth);
+          const bMesh = new THREE.Mesh(bGeo, b % 2 === 0 ? buildingMatA : buildingMatB);
+
+          const posX = sideX + (Math.random() - 0.5) * 14;
+          const posZ = -this.ROAD_LENGTH / 2 + (b + 0.5) * (this.ROAD_LENGTH / 4);
+          bMesh.position.set(posX, bHeight / 2, posZ);
+          segGroup.add(bMesh);
+
+          // Add ST SOLUTIONS billboard to 1 building nearest the highway per side
+          if (b === 1) {
+            const bbGeo = new THREE.PlaneGeometry(10.5, 3.3);
+            const billboard = new THREE.Mesh(bbGeo, billboardMat);
+            // Face toward highway
+            billboard.rotation.y = side === 1 ? -Math.PI / 2 : Math.PI / 2;
+            billboard.position.set(side > 0 ? posX - bWidth / 2 - 0.1 : posX + bWidth / 2 + 0.1, bHeight * 0.75, posZ);
+            segGroup.add(billboard);
+          }
+        }
+
+        // 2 Distant rolling hill cones for skyline depth
+        for (let h = 0; h < 2; h++) {
+          const hillRadius = 24 + Math.random() * 12;
+          const hillHeight = 16 + Math.random() * 18;
+          const hillGeo = new THREE.ConeGeometry(hillRadius, hillHeight, 7);
+          const hill = new THREE.Mesh(hillGeo, hillMat);
+          const hillX = side * (55 + Math.random() * 15);
+          const hillZ = -this.ROAD_LENGTH / 2 + (h + 0.5) * (this.ROAD_LENGTH / 2);
+          hill.position.set(hillX, hillHeight / 2 - 2, hillZ);
+          segGroup.add(hill);
+        }
+      });
+
+      segGroup.position.z = zOffset;
+      this.scene.add(segGroup);
+      this.scenerySegments.push(segGroup);
     }
   }
 
@@ -573,6 +714,7 @@ export class HighwayScene {
 
       // Hide road & traffic
       this.roadSegments.forEach((r) => (r.visible = false));
+      this.scenerySegments.forEach((s) => (s.visible = false));
       this.streetLamps.forEach((l) => (l.visible = false));
       this.overheadGantries.forEach((g) => (g.visible = false));
       this.trafficPool.forEach((t) => (t.group.visible = false));
@@ -588,6 +730,7 @@ export class HighwayScene {
         this.garagePlatform.visible = false;
       }
       this.roadSegments.forEach((r) => (r.visible = true));
+      this.scenerySegments.forEach((s) => (s.visible = true));
       this.streetLamps.forEach((l) => (l.visible = true));
       this.overheadGantries.forEach((g) => (g.visible = true));
     }

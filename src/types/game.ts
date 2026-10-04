@@ -18,6 +18,7 @@ export interface GameSettings {
   hapticsEnabled: boolean;
   timeOfDay: 'day' | 'night';
   weather: 'clear' | 'rain';
+  uiTheme: 'light' | 'dark';
 }
 
 export interface CarSpec {

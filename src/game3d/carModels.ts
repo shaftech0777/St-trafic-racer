@@ -19,22 +19,39 @@ export interface Car3DInstance {
 const tireGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.32, 16);
 const rimGeo = new THREE.CylinderGeometry(0.24, 0.24, 0.33, 12);
 const tireMat = new THREE.MeshStandardMaterial({
-  color: 0x18181b,
-  roughness: 0.9,
+  color: 0x141416,
+  roughness: 0.85,
   metalness: 0.1,
 });
+// Chrome-ish rim finish
 const rimMat = new THREE.MeshStandardMaterial({
-  color: 0xd4d4d8,
-  roughness: 0.3,
-  metalness: 0.8,
+  color: 0xf1f5f9,
+  roughness: 0.18,
+  metalness: 0.92,
 });
 const glassMat = new THREE.MeshStandardMaterial({
-  color: 0x090d16,
-  roughness: 0.1,
-  metalness: 0.9,
+  color: 0x0b1120,
+  roughness: 0.05,
+  metalness: 0.95,
   transparent: true,
   opacity: 0.85,
 });
+
+// Soft fake under-car shadow material
+const shadowMat = new THREE.MeshBasicMaterial({
+  color: 0x020408,
+  transparent: true,
+  opacity: 0.52,
+  depthWrite: false,
+});
+
+function createCarShadow(width: number, length: number): THREE.Mesh {
+  const geo = new THREE.PlaneGeometry(width * 1.08, length * 0.98);
+  const shadow = new THREE.Mesh(geo, shadowMat);
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = 0.03;
+  return shadow;
+}
 
 function createWheelMesh(): THREE.Group {
   const wheelGroup = new THREE.Group();
@@ -64,56 +81,88 @@ export function createPlayerCar(spec: CarSpec): Car3DInstance {
 
   const bodyMat = new THREE.MeshStandardMaterial({
     color: mainColor,
-    metalness: 0.75,
-    roughness: 0.25,
+    metalness: 0.8,
+    roughness: 0.22,
   });
 
   const accentMat = new THREE.MeshStandardMaterial({
     color: accentColor,
-    metalness: 0.85,
-    roughness: 0.3,
+    metalness: 0.88,
+    roughness: 0.25,
   });
 
   const headlightMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     emissive: 0x88ccff,
-    emissiveIntensity: 2.5,
-    roughness: 0.2,
+    emissiveIntensity: 2.8,
+    roughness: 0.15,
   });
 
   const brakeLightMat = new THREE.MeshStandardMaterial({
     color: 0xff1122,
     emissive: 0xff1122,
-    emissiveIntensity: 2.0,
+    emissiveIntensity: 2.2,
     roughness: 0.2,
   });
 
-  // Base chassis
-  const chassisGeo = new THREE.BoxGeometry(1.8, 0.45, 4.2);
+  // 1. Soft Underbody Shadow
+  const shadow = createCarShadow(2.1, 4.5);
+  carGroup.add(shadow);
+
+  // 2. Base chassis
+  const chassisGeo = new THREE.BoxGeometry(1.82, 0.46, 4.3);
   const chassis = new THREE.Mesh(chassisGeo, bodyMat);
   chassis.position.y = 0.48;
   carGroup.add(chassis);
 
-  // Cabin / Greenhouse
-  let cabinGeo: THREE.BoxGeometry;
+  // 3. Cabin / Greenhouse (tapered & angled windshield look)
+  let cabinWidth = 1.45;
+  let cabinLength = 2.2;
+  let cabinHeight = 0.42;
+
   if (spec.style === 'hypercar') {
-    cabinGeo = new THREE.BoxGeometry(1.4, 0.38, 2.0);
+    cabinWidth = 1.38;
+    cabinLength = 2.0;
+    cabinHeight = 0.38;
   } else if (spec.style === 'muscle') {
-    cabinGeo = new THREE.BoxGeometry(1.5, 0.45, 2.2);
-  } else {
-    cabinGeo = new THREE.BoxGeometry(1.45, 0.42, 2.3);
+    cabinWidth = 1.5;
+    cabinLength = 2.3;
+    cabinHeight = 0.45;
   }
-  const cabin = new THREE.Mesh(cabinGeo, glassMat);
+
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(cabinWidth, cabinHeight, cabinLength), glassMat);
   cabin.position.set(0, 0.82, -0.1);
   carGroup.add(cabin);
 
+  // Angled Windshield panel for tapered aerodynamic look
+  const windshieldGeo = new THREE.BoxGeometry(cabinWidth * 0.96, cabinHeight * 0.85, 0.45);
+  const windshield = new THREE.Mesh(windshieldGeo, glassMat);
+  windshield.rotation.x = Math.PI / 6;
+  windshield.position.set(0, 0.78, -cabinLength / 2 - 0.12);
+  carGroup.add(windshield);
+
+  // Angled Rear glass panel
+  const rearGlassGeo = new THREE.BoxGeometry(cabinWidth * 0.94, cabinHeight * 0.8, 0.4);
+  const rearGlass = new THREE.Mesh(rearGlassGeo, glassMat);
+  rearGlass.rotation.x = -Math.PI / 6;
+  rearGlass.position.set(0, 0.78, cabinLength / 2 + 0.1);
+  carGroup.add(rearGlass);
+
   // Roof plate
-  const roofGeo = new THREE.BoxGeometry(1.36, 0.05, 1.8);
-  const roof = new THREE.Mesh(roofGeo, bodyMat);
-  roof.position.set(0, 1.04, -0.1);
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(cabinWidth * 0.94, 0.05, cabinLength * 0.82), bodyMat);
+  roof.position.set(0, 0.82 + cabinHeight / 2 + 0.02, -0.1);
   carGroup.add(roof);
 
-  // Hood scoop or bonnet detail
+  // Side Mirrors
+  const mirrorGeo = new THREE.BoxGeometry(0.18, 0.08, 0.15);
+  const mirrorL = new THREE.Mesh(mirrorGeo, accentMat);
+  mirrorL.position.set(-cabinWidth * 0.55 - 0.08, 0.75, -0.7);
+  const mirrorR = new THREE.Mesh(mirrorGeo, accentMat);
+  mirrorR.position.set(cabinWidth * 0.55 + 0.08, 0.75, -0.7);
+  carGroup.add(mirrorL);
+  carGroup.add(mirrorR);
+
+  // Hood scoop or bonnet detail for muscle style
   if (spec.style === 'muscle') {
     const scoopGeo = new THREE.BoxGeometry(0.6, 0.15, 1.0);
     const scoop = new THREE.Mesh(scoopGeo, accentMat);
@@ -122,48 +171,57 @@ export function createPlayerCar(spec: CarSpec): Car3DInstance {
   }
 
   // Front bumper / splitter
-  const splitterGeo = new THREE.BoxGeometry(1.82, 0.12, 0.6);
+  const splitterGeo = new THREE.BoxGeometry(1.86, 0.12, 0.65);
   const splitter = new THREE.Mesh(splitterGeo, accentMat);
-  splitter.position.set(0, 0.3, -2.05);
+  splitter.position.set(0, 0.28, -2.1);
   carGroup.add(splitter);
 
   // Rear diffuser
-  const diffuserGeo = new THREE.BoxGeometry(1.78, 0.18, 0.5);
+  const diffuserGeo = new THREE.BoxGeometry(1.82, 0.18, 0.55);
   const diffuser = new THREE.Mesh(diffuserGeo, accentMat);
-  diffuser.position.set(0, 0.32, 2.05);
+  diffuser.position.set(0, 0.3, 2.1);
   carGroup.add(diffuser);
 
-  // Rear spoiler
-  const spoilerWingGeo = new THREE.BoxGeometry(1.7, 0.06, 0.35);
+  // Rear spoiler with sleek aerodynamic wing & endplates
+  const spoilerWingGeo = new THREE.BoxGeometry(1.8, 0.06, 0.4);
   const spoilerWing = new THREE.Mesh(spoilerWingGeo, accentMat);
-  spoilerWing.position.set(0, 1.08, 1.95);
+  spoilerWing.position.set(0, 1.1, 1.95);
 
-  const postGeo = new THREE.BoxGeometry(0.08, 0.35, 0.1);
+  const postGeo = new THREE.BoxGeometry(0.06, 0.36, 0.12);
   const postLeft = new THREE.Mesh(postGeo, accentMat);
-  postLeft.position.set(-0.6, 0.9, 1.95);
+  postLeft.position.set(-0.62, 0.92, 1.95);
   const postRight = new THREE.Mesh(postGeo, accentMat);
-  postRight.position.set(0.6, 0.9, 1.95);
+  postRight.position.set(0.62, 0.92, 1.95);
+
+  // Wing Endplates
+  const endplateGeo = new THREE.BoxGeometry(0.05, 0.18, 0.42);
+  const endplateL = new THREE.Mesh(endplateGeo, accentMat);
+  endplateL.position.set(-0.9, 1.1, 1.95);
+  const endplateR = new THREE.Mesh(endplateGeo, accentMat);
+  endplateR.position.set(0.9, 1.1, 1.95);
 
   carGroup.add(spoilerWing);
   carGroup.add(postLeft);
   carGroup.add(postRight);
+  carGroup.add(endplateL);
+  carGroup.add(endplateR);
 
   // Headlights
-  const hlGeo = new THREE.BoxGeometry(0.35, 0.12, 0.1);
+  const hlGeo = new THREE.BoxGeometry(0.36, 0.12, 0.1);
   const hlLeft = new THREE.Mesh(hlGeo, headlightMat);
-  hlLeft.position.set(-0.65, 0.52, -2.11);
+  hlLeft.position.set(-0.66, 0.52, -2.16);
   const hlRight = new THREE.Mesh(hlGeo, headlightMat);
-  hlRight.position.set(0.65, 0.52, -2.11);
+  hlRight.position.set(0.66, 0.52, -2.16);
   carGroup.add(hlLeft);
   carGroup.add(hlRight);
   headlights.push(hlLeft, hlRight);
 
   // Taillights
-  const tlGeo = new THREE.BoxGeometry(0.42, 0.1, 0.1);
+  const tlGeo = new THREE.BoxGeometry(0.44, 0.1, 0.1);
   const tlLeft = new THREE.Mesh(tlGeo, brakeLightMat);
-  tlLeft.position.set(-0.65, 0.55, 2.11);
+  tlLeft.position.set(-0.66, 0.55, 2.16);
   const tlRight = new THREE.Mesh(tlGeo, brakeLightMat);
-  tlRight.position.set(0.65, 0.55, 2.11);
+  tlRight.position.set(0.66, 0.55, 2.16);
   carGroup.add(tlLeft);
   carGroup.add(tlRight);
   brakeLights.push(tlLeft, tlRight);
@@ -180,13 +238,12 @@ export function createPlayerCar(spec: CarSpec): Car3DInstance {
     const w = createWheelMesh();
     w.position.set(pos.x, pos.y, pos.z);
     carGroup.add(w);
-    // save tire cylinder for rotation
     const tire = w.children[0] as THREE.Mesh;
     wheels.push(tire);
   });
 
   // Nitro exhaust tips and flame meshes
-  const flameGeo = new THREE.ConeGeometry(0.12, 0.65, 8);
+  const flameGeo = new THREE.ConeGeometry(0.12, 0.75, 8);
   flameGeo.rotateX(-Math.PI / 2);
   const flameMat = new THREE.MeshBasicMaterial({
     color: 0x00ffff,
@@ -196,12 +253,12 @@ export function createPlayerCar(spec: CarSpec): Car3DInstance {
 
   [-0.32, 0.32].forEach((xPos) => {
     const flame = new THREE.Mesh(flameGeo, flameMat.clone());
-    flame.position.set(xPos, 0.36, 2.45);
+    flame.position.set(xPos, 0.34, 2.5);
     carGroup.add(flame);
     nitroFlames.push(flame);
 
     const light = new THREE.PointLight(0x00ffff, 0, 4);
-    light.position.set(xPos, 0.36, 2.3);
+    light.position.set(xPos, 0.34, 2.3);
     carGroup.add(light);
     exhaustLights.push(light);
   });
@@ -259,8 +316,8 @@ export function createTrafficCar(type: TrafficType = 'sedan', colorHex?: number)
   const color = colorHex !== undefined ? colorHex : TRAFFIC_COLORS[Math.floor(Math.random() * TRAFFIC_COLORS.length)];
   const bodyMat = new THREE.MeshStandardMaterial({
     color,
-    roughness: 0.35,
-    metalness: 0.65,
+    roughness: 0.32,
+    metalness: 0.68,
   });
 
   const trimMat = new THREE.MeshStandardMaterial({
@@ -271,14 +328,14 @@ export function createTrafficCar(type: TrafficType = 'sedan', colorHex?: number)
 
   const trafficBrakeMat = new THREE.MeshStandardMaterial({
     color: 0xff0000,
-    emissive: 0xaa0000,
-    emissiveIntensity: 1.5,
+    emissive: 0xcc0000,
+    emissiveIntensity: 1.8,
   });
 
   const trafficHeadMat = new THREE.MeshStandardMaterial({
     color: 0xffffff,
     emissive: 0xffeeaa,
-    emissiveIntensity: 1.8,
+    emissiveIntensity: 2.0,
   });
 
   let length = 4.2;
@@ -291,6 +348,10 @@ export function createTrafficCar(type: TrafficType = 'sedan', colorHex?: number)
     width = 2.2;
     height = 2.6;
 
+    // Soft Shadow
+    const shadow = createCarShadow(width, length);
+    group.add(shadow);
+
     // Cab
     const cabGeo = new THREE.BoxGeometry(width, 1.4, 1.8);
     const cab = new THREE.Mesh(cabGeo, bodyMat);
@@ -300,8 +361,8 @@ export function createTrafficCar(type: TrafficType = 'sedan', colorHex?: number)
     // Box cargo container
     const containerMat = new THREE.MeshStandardMaterial({
       color: 0xf1f5f9,
-      roughness: 0.6,
-      metalness: 0.2,
+      roughness: 0.55,
+      metalness: 0.25,
     });
     const boxGeo = new THREE.BoxGeometry(width + 0.1, 1.8, 3.8);
     const container = new THREE.Mesh(boxGeo, containerMat);
@@ -317,6 +378,10 @@ export function createTrafficCar(type: TrafficType = 'sedan', colorHex?: number)
     length = 4.5;
     width = 1.95;
     height = 1.6;
+
+    // Soft Shadow
+    const shadow = createCarShadow(width, length);
+    group.add(shadow);
 
     const suvBody = new THREE.Mesh(new THREE.BoxGeometry(width, 0.65, length), bodyMat);
     suvBody.position.y = 0.6;
@@ -334,6 +399,10 @@ export function createTrafficCar(type: TrafficType = 'sedan', colorHex?: number)
     length = 4.1;
     width = 1.8;
     height = 1.3;
+
+    // Soft Shadow
+    const shadow = createCarShadow(width, length);
+    group.add(shadow);
 
     const sedanBody = new THREE.Mesh(new THREE.BoxGeometry(width, 0.48, length), bodyMat);
     sedanBody.position.y = 0.5;

@@ -39,10 +39,10 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, hapticsE
   return (
     <div 
       onClick={handleSkip}
-      className="absolute inset-0 z-50 flex flex-col items-center justify-between p-8 bg-[#06080e] cursor-pointer"
+      className="absolute inset-0 z-50 flex flex-col items-center justify-between p-8 bg-slate-50 dark:bg-[#06080e] cursor-pointer pointer-events-auto"
     >
       <div className="w-full flex justify-end">
-        <span className="text-xs text-slate-500 font-medium tracking-wider uppercase">
+        <span className="text-xs text-slate-400 dark:text-slate-500 font-medium tracking-wider uppercase">
           Tap to skip
         </span>
       </div>
@@ -55,21 +55,21 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, hapticsE
             src="/src/assets/images/racer_app_icon_1791113447385.jpg"
             alt="ST Trafic Racer Icon"
             referrerPolicy="no-referrer"
-            className="relative w-28 h-28 rounded-2xl shadow-2xl border border-white/15 object-cover"
+            className="relative w-28 h-28 rounded-2xl shadow-2xl border border-slate-200 dark:border-white/15 object-cover"
           />
         </div>
 
         {/* Title */}
         <div className="space-y-1">
-          <h1 className="font-racing text-4xl sm:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-200 to-cyan-400">
+          <h1 className="font-racing text-4xl sm:text-5xl font-extrabold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-300 to-cyan-400">
             ST TRAFIC RACER
           </h1>
-          <p className="text-xs sm:text-sm font-medium tracking-widest text-slate-400 uppercase">
+          <p className="text-xs sm:text-sm font-medium tracking-widest text-slate-600 dark:text-slate-400 uppercase">
             POWERED BY ST SOLUTIONS
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <span>WebGL Engine</span>
           <span aria-hidden="true">·</span>
           <span>Tilt & Touch Steering</span>
@@ -80,11 +80,11 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, hapticsE
 
       {/* Loading Progress Bar */}
       <div className="w-full max-w-xs space-y-2">
-        <div className="flex justify-between items-center text-xs text-slate-400 font-mono-num">
+        <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-400 font-mono-num font-semibold">
           <span>INITIALIZING</span>
           <span>{progress}%</span>
         </div>
-        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+        <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-cyan-400 transition-all duration-75 ease-out rounded-full shadow-lg"
             style={{ width: `${progress}%` }}

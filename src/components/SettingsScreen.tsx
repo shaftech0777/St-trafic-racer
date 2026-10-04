@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Volume2, VolumeX, Music, Compass, Smartphone, Vibrate, CheckCircle, Disc, Sun, Moon, CloudSun, CloudRain } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Music, Compass, Smartphone, Vibrate, CheckCircle, Disc, Sun, Moon, CloudSun, CloudRain, Palette } from 'lucide-react';
 import { GameSettings } from '../types/game';
 import { soundManager } from '../audio/soundManager';
 import { haptics } from '../utils/haptics';
@@ -71,6 +71,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     onUpdateSettings({ ...settings, weather: val });
   };
 
+  const handleSetUiTheme = (val: 'light' | 'dark') => {
+    haptics.tap(settings.hapticsEnabled);
+    soundManager.playClick();
+    onUpdateSettings({ ...settings, uiTheme: val });
+  };
+
   const handleSensitivityChange = (val: number) => {
     tiltController.setSensitivity(val);
     onUpdateSettings({ ...settings, tiltSensitivity: val });
@@ -100,22 +106,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
   // Calculate relative angle to neutral calibration
   const effectiveTilt = currentTiltGamma - settings.neutralTiltGamma;
-  // Clamp bubble position (-50% to +50%)
+  // Clamp bubble position (-45% to +45%)
   const bubbleOffset = Math.max(-45, Math.min(45, (effectiveTilt / 20) * 45));
 
   return (
-    <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 bg-[#06080e]/95 backdrop-blur-xl pointer-events-auto overflow-y-auto">
+    <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 bg-slate-100/95 dark:bg-[#06080e]/95 backdrop-blur-xl pointer-events-auto overflow-y-auto">
       {/* Top Header */}
-      <div className="w-full flex items-center justify-between pb-4 border-b border-white/10">
+      <div className="w-full flex items-center justify-between pb-4 border-b border-slate-200 dark:border-white/10">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-white/10 rounded-xl text-xs font-semibold text-slate-200 active:scale-95 transition-all"
+          className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 active:scale-95 transition-all shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back</span>
         </button>
 
-        <h2 className="font-racing text-2xl font-bold text-white tracking-wide">
+        <h2 className="font-racing text-2xl font-bold text-slate-900 dark:text-white tracking-wide">
           SETTINGS
         </h2>
 
@@ -124,22 +130,55 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
       {/* Main Settings List */}
       <div className="w-full max-w-sm mx-auto my-auto space-y-4 py-4">
+        {/* Appearance / UI Theme Section */}
+        <div className="bg-white/90 dark:bg-slate-950/70 border border-slate-200 dark:border-white/10 rounded-2xl p-4 space-y-3 shadow-sm">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+            Interface Theme
+          </span>
+
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/5">
+            <button
+              onClick={() => handleSetUiTheme('light')}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                settings.uiTheme === 'light'
+                  ? 'bg-white text-orange-600 shadow-sm border border-slate-200'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Sun className="w-4 h-4 text-orange-500" />
+              <span>Light Mode</span>
+            </button>
+
+            <button
+              onClick={() => handleSetUiTheme('dark')}
+              className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
+                settings.uiTheme === 'dark'
+                  ? 'bg-slate-800 text-cyan-400 shadow-sm border border-cyan-500/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Moon className="w-4 h-4 text-cyan-400" />
+              <span>Dark Mode</span>
+            </button>
+          </div>
+        </div>
+
         {/* Environment Section */}
-        <div className="bg-slate-950/70 border border-white/10 rounded-2xl p-4 space-y-3">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+        <div className="bg-white/90 dark:bg-slate-950/70 border border-slate-200 dark:border-white/10 rounded-2xl p-4 space-y-3 shadow-sm">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
             Environment & Scenery
           </span>
 
           {/* Time of Day */}
           <div className="space-y-1.5">
-            <span className="text-xs text-slate-300 font-medium">Time of Day</span>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-white/5">
+            <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Highway Time</span>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/5">
               <button
                 onClick={() => handleSetTimeOfDay('day')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                   settings.timeOfDay === 'day'
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/40 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Sun className="w-4 h-4" />
@@ -150,8 +189,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 onClick={() => handleSetTimeOfDay('night')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                   settings.timeOfDay === 'night'
-                    ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/40 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <Moon className="w-4 h-4" />
@@ -162,14 +201,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
 
           {/* Weather */}
           <div className="space-y-1.5 pt-1">
-            <span className="text-xs text-slate-300 font-medium">Weather Condition</span>
-            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl border border-white/5">
+            <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">Weather Condition</span>
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/5">
               <button
                 onClick={() => handleSetWeather('clear')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                   settings.weather === 'clear'
-                    ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/40 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <CloudSun className="w-4 h-4" />
@@ -180,8 +219,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                 onClick={() => handleSetWeather('rain')}
                 className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all ${
                   settings.weather === 'rain'
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-sm'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/40 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 <CloudRain className="w-4 h-4" />
@@ -192,8 +231,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Audio Section */}
-        <div className="bg-slate-950/70 border border-white/10 rounded-2xl p-4 space-y-3">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+        <div className="bg-white/90 dark:bg-slate-950/70 border border-slate-200 dark:border-white/10 rounded-2xl p-4 space-y-3 shadow-sm">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
             Audio & Sound
           </span>
 
@@ -201,42 +240,42 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               {settings.soundEnabled ? (
-                <Volume2 className="w-5 h-5 text-orange-400" />
+                <Volume2 className="w-5 h-5 text-orange-500 dark:text-orange-400" />
               ) : (
-                <VolumeX className="w-5 h-5 text-slate-500" />
+                <VolumeX className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               )}
               <div>
-                <p className="text-sm font-semibold text-white">Sound Effects</p>
-                <p className="text-[11px] text-slate-400">Engine, nitro, near-miss, crash</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Sound Effects</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Engine, nitro, near-miss, crash</p>
               </div>
             </div>
 
             <button
               onClick={handleToggleSound}
               className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-                settings.soundEnabled ? 'bg-orange-500 justify-end' : 'bg-slate-800 justify-start'
+                settings.soundEnabled ? 'bg-orange-500 justify-end' : 'bg-slate-300 dark:bg-slate-800 justify-start'
               }`}
             >
               <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
             </button>
           </div>
 
-          <div className="h-px bg-white/5" />
+          <div className="h-px bg-slate-200 dark:bg-white/5" />
 
           {/* Music Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Music className={`w-5 h-5 ${settings.musicEnabled ? 'text-cyan-400' : 'text-slate-500'}`} />
+              <Music className={`w-5 h-5 ${settings.musicEnabled ? 'text-cyan-600 dark:text-cyan-400' : 'text-slate-400 dark:text-slate-500'}`} />
               <div>
-                <p className="text-sm font-semibold text-white">Synthwave Music</p>
-                <p className="text-[11px] text-slate-400">Heart-pumping driving soundtrack</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-white">Synthwave Music</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Heart-pumping driving soundtrack</p>
               </div>
             </div>
 
             <button
               onClick={handleToggleMusic}
               className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-                settings.musicEnabled ? 'bg-cyan-500 justify-end' : 'bg-slate-800 justify-start'
+                settings.musicEnabled ? 'bg-cyan-500 justify-end' : 'bg-slate-300 dark:bg-slate-800 justify-start'
               }`}
             >
               <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
@@ -245,19 +284,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Steering Scheme Section */}
-        <div className="bg-slate-950/70 border border-white/10 rounded-2xl p-4 space-y-4">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+        <div className="bg-white/90 dark:bg-slate-950/70 border border-slate-200 dark:border-white/10 rounded-2xl p-4 space-y-4 shadow-sm">
+          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
             Steering Controls
           </span>
 
           {/* 3-Column Segmented Control Selector */}
-          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-900 rounded-xl border border-white/5">
+          <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-white/5">
             <button
               onClick={() => handleSelectScheme('tilt')}
               className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
                 settings.controlScheme === 'tilt'
-                  ? 'bg-slate-800 text-cyan-400 shadow-md border border-cyan-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 shadow-md border border-cyan-500/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Compass className="w-4 h-4" />
@@ -268,8 +307,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               onClick={() => handleSelectScheme('touch')}
               className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
                 settings.controlScheme === 'touch'
-                  ? 'bg-slate-800 text-orange-400 shadow-md border border-orange-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-md border border-orange-500/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Smartphone className="w-4 h-4" />
@@ -280,8 +319,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               onClick={() => handleSelectScheme('wheel')}
               className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-lg text-xs font-semibold transition-all ${
                 settings.controlScheme === 'wheel'
-                  ? 'bg-slate-800 text-amber-400 shadow-md border border-amber-500/30'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-md border border-amber-500/30'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               <Disc className="w-4 h-4" />
@@ -295,8 +334,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               {/* Sensitivity Slider */}
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center text-xs">
-                  <span className="text-slate-300 font-medium">Tilt Sensitivity</span>
-                  <span className="font-mono-num font-bold text-cyan-400">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">Tilt Sensitivity</span>
+                  <span className="font-mono-num font-bold text-cyan-600 dark:text-cyan-400">
                     {settings.tiltSensitivity.toFixed(1)}x
                   </span>
                 </div>
@@ -307,22 +346,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
                   step="0.1"
                   value={settings.tiltSensitivity}
                   onChange={(e) => handleSensitivityChange(parseFloat(e.target.value))}
-                  className="w-full accent-cyan-400 cursor-pointer"
+                  className="w-full accent-cyan-500 cursor-pointer"
                 />
               </div>
 
               {/* Spirit Level Live Visualizer */}
               <div className="space-y-1.5">
-                <div className="flex justify-between items-center text-[11px] text-slate-400">
+                <div className="flex justify-between items-center text-[11px] text-slate-500 dark:text-slate-400">
                   <span>Live Tilt Spirit Level</span>
-                  <span className="font-mono-num">{effectiveTilt.toFixed(1)}°</span>
+                  <span className="font-mono-num font-semibold">{effectiveTilt.toFixed(1)}°</span>
                 </div>
-                <div className="relative h-6 w-full bg-slate-900 border border-white/10 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="relative h-6 w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-full flex items-center justify-center overflow-hidden">
                   {/* Center zero mark */}
-                  <div className="absolute h-full w-0.5 bg-white/20" />
+                  <div className="absolute h-full w-0.5 bg-slate-300 dark:bg-white/20" />
                   {/* Floating bubble indicator */}
                   <div
-                    className="absolute w-4 h-4 rounded-full bg-cyan-400 shadow-lg shadow-cyan-500/50 transition-all duration-75"
+                    className="absolute w-4 h-4 rounded-full bg-cyan-500 shadow-lg shadow-cyan-500/50 transition-all duration-75"
                     style={{
                       transform: `translateX(${bubbleOffset * 2.8}px)`,
                     }}
@@ -333,16 +372,16 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
               {/* Calibrate Neutral Angle Button */}
               <button
                 onClick={handleCalibrateCurrentAngle}
-                className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 border border-white/10 rounded-xl text-xs font-semibold text-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2"
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 {calibratedSuccess ? (
                   <>
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-400">Neutral Angle Calibrated!</span>
+                    <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                    <span className="text-emerald-600 dark:text-emerald-400">Neutral Angle Calibrated!</span>
                   </>
                 ) : (
                   <>
-                    <Compass className="w-4 h-4 text-cyan-400" />
+                    <Compass className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                     <span>Calibrate Current Angle as Center</span>
                   </>
                 )}
@@ -352,19 +391,19 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
 
         {/* Haptics & Feedback */}
-        <div className="bg-slate-950/70 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white/90 dark:bg-slate-950/70 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
-            <Vibrate className={`w-5 h-5 ${settings.hapticsEnabled ? 'text-amber-400' : 'text-slate-500'}`} />
+            <Vibrate className={`w-5 h-5 ${settings.hapticsEnabled ? 'text-amber-500 dark:text-amber-400' : 'text-slate-400 dark:text-slate-500'}`} />
             <div>
-              <p className="text-sm font-semibold text-white">Haptic Vibration</p>
-              <p className="text-[11px] text-slate-400">Vibration on nitro, near-miss, & crash</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">Haptic Vibration</p>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">Vibration on nitro, near-miss, & crash</p>
             </div>
           </div>
 
           <button
             onClick={handleToggleHaptics}
             className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-              settings.hapticsEnabled ? 'bg-amber-500 justify-end' : 'bg-slate-800 justify-start'
+              settings.hapticsEnabled ? 'bg-amber-500 justify-end' : 'bg-slate-300 dark:bg-slate-800 justify-start'
             }`}
           >
             <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform" />
@@ -376,7 +415,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <div className="w-full max-w-sm mx-auto pt-2">
         <button
           onClick={handleBack}
-          className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-racing text-lg font-bold rounded-xl active:scale-98 transition-all"
+          className="w-full py-3 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-racing text-lg font-bold rounded-xl active:scale-98 transition-all shadow-md"
         >
           SAVE & RETURN
         </button>
@@ -384,4 +423,3 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
     </div>
   );
 };
-
